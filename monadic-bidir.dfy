@@ -6,6 +6,7 @@ import opened def.std
 import opened util
 import opened lang
 
+// datatype Option<A> = Some(value: A) | None
 function eval(env : Env, e : Term) : Option<Val>
     decreases e , 0
 {
@@ -15,10 +16,18 @@ function eval(env : Env, e : Term) : Option<Val>
         var n1 :- evalInt(env,e);
         var n2 :- evalInt(env,e');
         Some(IntVal(n1 + n2))
+    case Sub(e,e') => 
+        var n1 :- evalInt(env,e);
+        var n2 :- evalInt(env,e');
+        Some(IntVal(n1 - n2))
     case Or(e,e') =>
         var b1 :- evalBool(env,e);
         var b2 :- evalBool(env,e');
         Some(BoolVal(b1 || b2))
+    case And(e,e') =>
+        var b1 :- evalBool(env,e);
+        var b2 :- evalBool(env,e');
+        Some(BoolVal(b1 && b2))
     case Record(em) =>
         var m :- evalRecordExpr(env,em);
         Some(RecordVal(m))
@@ -69,19 +78,45 @@ function evalRecordExpr(env : Env, es : seq<(string,Term)>) : Option<map<string,
     if k in vm.Keys then Some(vm) else Some(vm[k := v])
 }
 
+function subty(t : Ty, t' : Ty) : bool {
+  match (t,t') {
+    case (IntTy,IntTy) => true
+    case (BoolTy,BoolTy) => true
+    case (RecordTy(m),RecordTy(m')) => forall k :: k in m' ==> k in m && subty(m[k],m'[k])
+    case _ => false
+  }
+}
+
+lemma subtyRefl(t : Ty)
+  ensures subty(t,t)
+{
+  match t {
+    case BoolTy =>
+    case IntTy =>
+    case RecordTy(m) =>
+  }
+}
+
 function infer(ctx : Ctx, e : Term) : Option<Ty>
     decreases e, 0
 {
   match e {
     case Var(x) => if x in ctx then Some(ctx[x]) else None
     case Add(e,e') => 
-        var _ :- inferIntTy(ctx,e);
-        var _ :- inferIntTy(ctx,e');
+        var _ :- check(ctx,e,IntTy);
+        var _ :- check(ctx,e',IntTy);
         Some(IntTy)
-
+    case Sub(e,e') => 
+        var _ :- check(ctx,e,IntTy);
+        var _ :- check(ctx,e',IntTy);
+        Some(IntTy)
     case Or(e,e') =>
-        var _ :- inferBoolTy(ctx,e);
-        var _ :- inferBoolTy(ctx,e');
+        var _ :- check(ctx,e,BoolTy);
+        var _ :- check(ctx,e',BoolTy);
+        Some(BoolTy)
+    case And(e,e') =>
+        var _ :- check(ctx,e,BoolTy);
+        var _ :- check(ctx,e',BoolTy);
         Some(BoolTy)
     case Record(es) =>
         var tm :- inferRecordExpr(ctx,es);
@@ -134,6 +169,13 @@ function inferRecordExpr(ctx : Ctx, es : seq<(string,Term)>) : Option<map<string
     if k in tm then Some(tm) else Some(tm[k := t])
 }
 
+function check(ctx : Ctx, e : Term, t : Ty) : Option<()>
+  decreases e , 1
+{
+  var t' :- infer(ctx,e);
+  if subty(t',t) then Some(()) else None
+}
+
 function valHasType(v : Val, t : Ty) : bool {
   match (v,t) {
     case (IntVal(_),IntTy) => true
@@ -143,25 +185,40 @@ function valHasType(v : Val, t : Ty) : bool {
   }
 }
 
-lemma sound (env : Env, ctx : Ctx, e : Term)
+lemma valHasTypeSubtyCompat (v : Val, t : Ty, t' : Ty)
+  requires valHasType(v,t)
+  requires subty(t,t')
+  ensures valHasType(v,t')
+{}
+
+lemma soundBidir (env : Env, ctx : Ctx, e : Term, t : Ty)
   requires forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
-  requires infer(ctx,e).Some?
-  ensures eval(env,e).Some? && valHasType(eval(env,e).value,infer(ctx,e).value)
+  requires check(ctx,e,t).Some?
+  ensures eval(env,e).Some? && valHasType(eval(env,e).value,t)
 {
   match e {
-    case Var(_) =>
-    case Add(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case Or(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case Var(x) => valHasTypeSubtyCompat(env[x],ctx[x],t);
+    case Add(e,e') => soundBidir(env,ctx,e,IntTy); soundBidir(env,ctx,e',IntTy);
+    case Sub(e,e') => soundBidir(env,ctx,e,IntTy); soundBidir(env,ctx,e',IntTy);
+    case Or(e,e') => soundBidir(env,ctx,e,BoolTy); soundBidir(env,ctx,e',BoolTy);
+    case And(e,e') => soundBidir(env,ctx,e,BoolTy); soundBidir(env,ctx,e',BoolTy);
     case Record(es) =>
       var mt :| inferRecordExpr(ctx,es) == Some(mt);
+      assert subty(RecordTy(mt),t);
       invertRecordTck(ctx,es);
       forall i | 0 <= i < |es|
         ensures eval(env,es[i].1).Some? && valHasType(eval(env,es[i].1).value,infer(ctx,es[i].1).value)
       {
-        sound(env,ctx,es[i].1);
+        subtyRefl(infer(ctx,es[i].1).value);
+        soundBidir(env,ctx,es[i].1,infer(ctx,es[i].1).value);
       }
       recordEvalLemma(env,es);
-    case RecordProj(e,f) => sound(env,ctx,e);
+      valHasTypeSubtyCompat(eval(env,Record(es)).value,RecordTy(mt),t);
+    case RecordProj(e,f) =>
+      var mt := inferRecordTy(ctx,e).value;
+      subtyRefl(RecordTy(mt));
+      soundBidir(env,ctx,e,RecordTy(mt));
+      valHasTypeSubtyCompat(evalRecord(env,e).value[f],mt[f],t);
   }
 }
 
@@ -179,5 +236,4 @@ lemma recordEvalLemma(env : Env, es : seq<(string,Term)>)
   ensures evalRecordExpr(env,es).Some?
   ensures forall i | 0 <= i < |es| :: es[i].0 in evalRecordExpr(env,es).value.Keys
   ensures forall k | k in evalRecordExpr(env,es).value.Keys :: KeyExists(k,es) && eval(env,LastOfKey(k,es)).value == evalRecordExpr(env,es).value[k]
-{
-}
+{}

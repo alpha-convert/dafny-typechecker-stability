@@ -1,21 +1,10 @@
 include "std.dfy"
 include "util.dfy"
+include "lang.dfy"
 
 import opened def.std
 import opened util
-
-// datatype Option<A> = Some(value: A) | None
-
-datatype Term  =
-  | Var(x : string)
-  | Add(e : Term, e': Term)
-  | Or(e : Term, e' : Term)
-  | EqZ(e : Term)
-  | Record(em : seq<(string,Term)>)
-
-datatype Val = IntVal(v : int) | BoolVal(b : bool) | RecordVal(m : map<string,Val>)
-
-type Env = map<string,Val>
+import opened lang
 
 function eval(env : Env, e : Term) : Option<Val> {
   match e {
@@ -28,10 +17,6 @@ function eval(env : Env, e : Term) : Option<Val> {
                         case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 || b2)) 
                         case _ => None
                       }
-    case EqZ(e) => match(eval(env,e)) {
-                     case Some(IntVal(v)) => if v == 0 then Some(BoolVal(true)) else Some(BoolVal(false))
-                     case _ => None
-                   }
     case Record(em) => match evalRecord(env,em) {
       case Some(m) => Some(RecordVal(m))
       case _ => None
@@ -49,10 +34,6 @@ function evalRecord(env : Env, es : seq<(string,Term)>) : Option<map<string,Val>
     }
 }
 
-datatype Ty = IntTy | BoolTy | RecordTy(rm : map<string,Ty>)
-
-type Ctx = map<string,Ty>
-
 function infer(ctx : Ctx, e : Term) : Option<Ty> {
   match e {
     case Var(x) => if x in ctx then Some(ctx[x]) else None
@@ -62,10 +43,6 @@ function infer(ctx : Ctx, e : Term) : Option<Ty> {
     }
     case Or(e,e') => match (infer(ctx,e),infer(ctx,e')) {
       case (Some(BoolTy),Some(BoolTy)) => Some(BoolTy)
-      case _ => None
-    }
-    case EqZ(e) => match infer(ctx,e) {
-      case Some(IntTy) => Some(BoolTy)
       case _ => None
     }
     case Record(es) => match inferRecord(ctx,es) {
@@ -103,7 +80,6 @@ lemma sound (env : Env, ctx : Ctx, e : Term)
     case Var(_) =>
     case Add(e,e') => sound(env,ctx,e); sound(env,ctx,e');
     case Or(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case EqZ(e) => sound(env,ctx,e);
     case Record(es) =>
       var mt :| inferRecord(ctx,es) == Some(mt);
       invertRecordTck(ctx,es);

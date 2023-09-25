@@ -52,7 +52,7 @@ module def.std {
     }
   }
 
-  function guard(b : bool) : Option<()> {
+  function optguard(b : bool) : Option<()> {
     if b then Some(()) else None
   }
 
