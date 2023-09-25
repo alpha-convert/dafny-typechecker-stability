@@ -15,10 +15,18 @@ function eval(env : Env, e : Term) : Option<Val>
         var n1 :- evalInt(env,e);
         var n2 :- evalInt(env,e');
         Some(IntVal(n1 + n2))
+    case Sub(e,e') => 
+        var n1 :- evalInt(env,e);
+        var n2 :- evalInt(env,e');
+        Some(IntVal(n1 - n2))
     case Or(e,e') =>
         var b1 :- evalBool(env,e);
         var b2 :- evalBool(env,e');
         Some(BoolVal(b1 || b2))
+    case And(e,e') =>
+        var b1 :- evalBool(env,e);
+        var b2 :- evalBool(env,e');
+        Some(BoolVal(b1 && b2))
     case Record(em) =>
         var m :- evalRecordExpr(env,em);
         Some(RecordVal(m))
@@ -78,15 +86,21 @@ function infer(ctx : Ctx, e : Term) : Option<Ty>
         var _ :- inferIntTy(ctx,e);
         var _ :- inferIntTy(ctx,e');
         Some(IntTy)
-
+    case Sub(e,e') => 
+        var _ :- inferIntTy(ctx,e);
+        var _ :- inferIntTy(ctx,e');
+        Some(IntTy)
     case Or(e,e') =>
+        var _ :- inferBoolTy(ctx,e);
+        var _ :- inferBoolTy(ctx,e');
+        Some(BoolTy)
+    case And(e,e') =>
         var _ :- inferBoolTy(ctx,e);
         var _ :- inferBoolTy(ctx,e');
         Some(BoolTy)
     case Record(es) =>
         var tm :- inferRecordExpr(ctx,es);
         Some(RecordTy(tm))
-    
     case RecordProj(e,f) =>
         var m :- inferRecordTy(ctx,e);
         lookup(m,f)
@@ -151,7 +165,9 @@ lemma sound (env : Env, ctx : Ctx, e : Term)
   match e {
     case Var(_) =>
     case Add(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case Sub(e,e') => sound(env,ctx,e); sound(env,ctx,e');
     case Or(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case And(e,e') => sound(env,ctx,e); sound(env,ctx,e');
     case Record(es) =>
       var mt :| inferRecordExpr(ctx,es) == Some(mt);
       invertRecordTck(ctx,es);

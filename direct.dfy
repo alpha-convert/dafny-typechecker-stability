@@ -13,12 +13,24 @@ function eval(env : Env, e : Term) : Option<Val> {
                         case (Some(IntVal(v1)),Some(IntVal(v2))) => Some(IntVal(v1 + v2)) 
                         case _ => None
                       }
+    case Sub(e,e') => match (eval(env,e),eval(env,e')) {
+                        case (Some(IntVal(v1)),Some(IntVal(v2))) => Some(IntVal(v1 - v2)) 
+                        case _ => None
+                      }
     case Or(e,e') => match (eval(env,e),eval(env,e')) {
                         case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 || b2)) 
                         case _ => None
                       }
+    case And(e,e') => match (eval(env,e),eval(env,e')) {
+                        case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 && b2)) 
+                        case _ => None
+                      }
     case Record(em) => match evalRecord(env,em) {
       case Some(m) => Some(RecordVal(m))
+      case _ => None
+    }
+    case RecordProj(e,f) => match eval(env,e) {
+      case Some(RecordVal(m)) => if f in m then Some(m[f]) else None
       case _ => None
     }
   }
@@ -41,12 +53,24 @@ function infer(ctx : Ctx, e : Term) : Option<Ty> {
       case (Some(IntTy),Some(IntTy)) => Some(IntTy)
       case _ => None
     }
+    case Sub(e,e') => match (infer(ctx,e),infer(ctx,e')) {
+      case (Some(IntTy),Some(IntTy)) => Some(IntTy)
+      case _ => None
+    }
     case Or(e,e') => match (infer(ctx,e),infer(ctx,e')) {
+      case (Some(BoolTy),Some(BoolTy)) => Some(BoolTy)
+      case _ => None
+    }
+    case And(e,e') => match (infer(ctx,e),infer(ctx,e')) {
       case (Some(BoolTy),Some(BoolTy)) => Some(BoolTy)
       case _ => None
     }
     case Record(es) => match inferRecord(ctx,es) {
       case Some(tm) => Some(RecordTy(tm))
+      case _ => None
+    }
+    case RecordProj(e,f) => match infer(ctx,e) {
+      case Some(RecordTy(tm)) => if f in tm then Some(tm[f]) else None
       case _ => None
     }
   }
@@ -79,7 +103,9 @@ lemma sound (env : Env, ctx : Ctx, e : Term)
   match e {
     case Var(_) =>
     case Add(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case Sub(e,e') => sound(env,ctx,e); sound(env,ctx,e');
     case Or(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case And(e,e') => sound(env,ctx,e); sound(env,ctx,e');
     case Record(es) =>
       var mt :| inferRecord(ctx,es) == Some(mt);
       invertRecordTck(ctx,es);
@@ -89,6 +115,7 @@ lemma sound (env : Env, ctx : Ctx, e : Term)
         sound(env,ctx,es[i].1);
       }
       recordEvalLemma(env,es);
+    case RecordProj(e,f) => sound(env,ctx,e);
   }
 }
 
