@@ -91,7 +91,7 @@ function infer(ctx : Ctx, e : Term) : Option<Ty> {
 
     case EqZ(e) => 
         var t :- infer(ctx,e);
-        var _ :- guard(t == BoolTy);
+        var _ :- guard(t == IntTy);
         Some(BoolTy)
 
     case Record(es) =>
