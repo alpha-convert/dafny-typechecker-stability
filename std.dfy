@@ -55,4 +55,9 @@ module def.std {
   function guard(b : bool) : Option<()> {
     if b then Some(()) else None
   }
+
+  function lookup<T,U>(m : map<T,U>, t : T) : Option<U>
+  {
+    if t in m then Some(m[t]) else None
+  }
 }
