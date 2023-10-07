@@ -14,4 +14,5 @@ module util {
     {
     if (es[0].0 == k && (forall j | 0 < j < |es| :: es[j].0 != k)) then es[0].1 else LastOfKey(k,es[1..])
     }
+
 }

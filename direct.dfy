@@ -8,29 +8,38 @@ import opened lang
 
 function eval(env : Env, e : Term) : Option<Val> {
   match e {
+    case Lit(v) => Some(v)
     case Var(x) => if x in env then Some(env[x]) else None
-    case Add(e,e') => match (eval(env,e),eval(env,e')) {
+    case Add(e1,e2) => match (eval(env,e1),eval(env,e2)) {
                         case (Some(IntVal(v1)),Some(IntVal(v2))) => Some(IntVal(v1 + v2)) 
                         case _ => None
                       }
-    case Sub(e,e') => match (eval(env,e),eval(env,e')) {
+    case Sub(e1,e2) => match (eval(env,e1),eval(env,e2)) {
                         case (Some(IntVal(v1)),Some(IntVal(v2))) => Some(IntVal(v1 - v2)) 
                         case _ => None
                       }
-    case Or(e,e') => match (eval(env,e),eval(env,e')) {
+    case Or(e1,e2) => match (eval(env,e1),eval(env,e2)) {
                         case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 || b2)) 
                         case _ => None
                       }
-    case And(e,e') => match (eval(env,e),eval(env,e')) {
+    case And(e1,e2) => match (eval(env,e1),eval(env,e2)) {
                         case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 && b2)) 
+                        case _ => None
+                      }
+    case Eq(e1,e2) => match (eval(env,e1),eval(env,e2)) {
+                        case (Some(v1),Some(v2)) => Some(BoolVal(v1 == v2)) 
                         case _ => None
                       }
     case Record(em) => match evalRecord(env,em) {
       case Some(m) => Some(RecordVal(m))
       case _ => None
     }
-    case RecordProj(e,f) => match eval(env,e) {
+    case RecordProj(e',f) => match eval(env,e') {
       case Some(RecordVal(m)) => if f in m then Some(m[f]) else None
+      case _ => None
+    }
+    case If(eb,e1,e2) => match eval(env,eb) {
+      case Some(BoolVal(b)) => if b then eval(env,e1) else eval(env,e2)
       case _ => None
     }
   }
@@ -48,29 +57,38 @@ function evalRecord(env : Env, es : seq<(string,Term)>) : Option<map<string,Val>
 
 function infer(ctx : Ctx, e : Term) : Option<Ty> {
   match e {
+    case Lit(v) => Some(inferVal(v))
     case Var(x) => if x in ctx then Some(ctx[x]) else None
-    case Add(e,e') => match (infer(ctx,e),infer(ctx,e')) {
+    case Add(e1,e2) => match (infer(ctx,e1),infer(ctx,e2)) {
       case (Some(IntTy),Some(IntTy)) => Some(IntTy)
       case _ => None
     }
-    case Sub(e,e') => match (infer(ctx,e),infer(ctx,e')) {
+    case Sub(e1,e2) => match (infer(ctx,e1),infer(ctx,e2)) {
       case (Some(IntTy),Some(IntTy)) => Some(IntTy)
       case _ => None
     }
-    case Or(e,e') => match (infer(ctx,e),infer(ctx,e')) {
+    case Or(e1,e2) => match (infer(ctx,e1),infer(ctx,e2)) {
       case (Some(BoolTy),Some(BoolTy)) => Some(BoolTy)
       case _ => None
     }
-    case And(e,e') => match (infer(ctx,e),infer(ctx,e')) {
+    case And(e1,e2) => match (infer(ctx,e1),infer(ctx,e2)) {
       case (Some(BoolTy),Some(BoolTy)) => Some(BoolTy)
+      case _ => None
+    }
+    case Eq(e1,e2) => match (infer(ctx,e1),infer(ctx,e2)) {
+      case (Some(_),Some(_)) => Some(BoolTy)
       case _ => None
     }
     case Record(es) => match inferRecord(ctx,es) {
       case Some(tm) => Some(RecordTy(tm))
       case _ => None
     }
-    case RecordProj(e,f) => match infer(ctx,e) {
+    case RecordProj(e',f) => match infer(ctx,e') {
       case Some(RecordTy(tm)) => if f in tm then Some(tm[f]) else None
+      case _ => None
+    }
+    case If(eb,e1,e2) => match (infer(ctx,eb),infer(ctx,e1),infer(ctx,e2)) {
+      case (Some(BoolTy),Some(t1),Some(t2)) => if t1 == t2 then Some(t1) else None
       case _ => None
     }
   }
@@ -86,6 +104,16 @@ function inferRecord(ctx : Ctx, es : seq<(string,Term)>) : Option<map<string,Ty>
     }
 }
 
+function inferVal(v : Val) : Ty
+  decreases v , 1
+{
+  match v {
+    case IntVal(_) => IntTy
+    case BoolVal(_) => BoolTy
+    case RecordVal(m) => RecordTy(map k | k in m :: inferVal(m[k]))
+  }
+}
+
 function valHasType(v : Val, t : Ty) : bool {
   match (v,t) {
     case (IntVal(_),IntTy) => true
@@ -95,27 +123,40 @@ function valHasType(v : Val, t : Ty) : bool {
   }
 }
 
-lemma sound (env : Env, ctx : Ctx, e : Term)
-  requires forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
+lemma inferValSound(v : Val)
+  ensures valHasType(v,inferVal(v))
+{}
+
+predicate envHasCtx(env : Env, ctx : Ctx){
+    forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
+}
+
+
+
+lemma soundDirect(env : Env, ctx : Ctx, e : Term)
+  requires envHasCtx(env,ctx)
   requires infer(ctx,e).Some?
   ensures eval(env,e).Some? && valHasType(eval(env,e).value,infer(ctx,e).value)
 {
   match e {
     case Var(_) =>
-    case Add(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case Sub(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case Or(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case And(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case Lit(v) => inferValSound(v);
+    case Add(e1,e2) => soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
+    case Sub(e1,e2) => soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
+    case Or(e1,e2) => soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
+    case And(e1,e2) => soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
+    case Eq(e1,e2) => soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
     case Record(es) =>
       var mt :| inferRecord(ctx,es) == Some(mt);
       invertRecordTck(ctx,es);
       forall i | 0 <= i < |es|
         ensures eval(env,es[i].1).Some? && valHasType(eval(env,es[i].1).value,infer(ctx,es[i].1).value)
       {
-        sound(env,ctx,es[i].1);
+        soundDirect(env,ctx,es[i].1);
       }
       recordEvalLemma(env,es);
-    case RecordProj(e,f) => sound(env,ctx,e);
+    case RecordProj(e',f) => soundDirect(env,ctx,e');
+    case If(eb,e1,e2) => soundDirect(env,ctx,eb); soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
   }
 }
 

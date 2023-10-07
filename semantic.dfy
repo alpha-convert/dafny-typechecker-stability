@@ -6,6 +6,7 @@ import opened def.std
 import opened util
 import opened lang
 
+
 // datatype Option<A> = Some(value: A) | None
 function eval(env : Env, e : Term) : Option<Val>
     decreases e , 0
@@ -219,20 +220,14 @@ lemma inferValSound(v : Val)
 {}
 
 
-
 lemma valHasTypeSubtyCompat (v : Val, t : Ty, t' : Ty)
   requires valHasType(v,t)
   requires subty(t,t')
   ensures valHasType(v,t')
 {}
 
-predicate envHasCtx(env : Env, ctx : Ctx){
-    forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
-}
-
-
 lemma soundBidir (env : Env, ctx : Ctx, e : Term, t : Ty)
-  requires envHasCtx(env,ctx)
+  requires forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
   requires check(ctx,e,t).Some?
   ensures eval(env,e).Some? && valHasType(eval(env,e).value,t)
 {

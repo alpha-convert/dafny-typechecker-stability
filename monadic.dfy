@@ -11,28 +11,36 @@ function eval(env : Env, e : Term) : Option<Val>
 {
   match e {
     case Var(x) => lookup(env,x)
-    case Add(e,e') => 
-        var n1 :- evalInt(env,e);
-        var n2 :- evalInt(env,e');
+    case Lit(v) => Some(v)
+    case Add(e1,e2) => 
+        var n1 :- evalInt(env,e1);
+        var n2 :- evalInt(env,e2);
         Some(IntVal(n1 + n2))
-    case Sub(e,e') => 
-        var n1 :- evalInt(env,e);
-        var n2 :- evalInt(env,e');
+    case Sub(e1,e2) => 
+        var n1 :- evalInt(env,e1);
+        var n2 :- evalInt(env,e2);
         Some(IntVal(n1 - n2))
-    case Or(e,e') =>
-        var b1 :- evalBool(env,e);
-        var b2 :- evalBool(env,e');
+    case Or(e1,e2) =>
+        var b1 :- evalBool(env,e1);
+        var b2 :- evalBool(env,e2);
         Some(BoolVal(b1 || b2))
-    case And(e,e') =>
-        var b1 :- evalBool(env,e);
-        var b2 :- evalBool(env,e');
+    case And(e1,e2) =>
+        var b1 :- evalBool(env,e1);
+        var b2 :- evalBool(env,e2);
         Some(BoolVal(b1 && b2))
+    case Eq(e1,e2) =>
+        var v1 :- eval(env,e1);
+        var v2 :- eval(env,e2);
+        Some(BoolVal(v1 == v2))
     case Record(em) =>
         var m :- evalRecordExpr(env,em);
         Some(RecordVal(m))
-    case RecordProj(e,f) => 
-        var m :- evalRecord(env,e);
+    case RecordProj(e',f) => 
+        var m :- evalRecord(env,e');
         lookup(m,f)
+    case If(eb,e1,e2) =>
+        var b :- evalBool(env,eb);
+        if b then eval(env,e1) else eval(env,e2)
   }
 }
 
@@ -82,28 +90,38 @@ function infer(ctx : Ctx, e : Term) : Option<Ty>
 {
   match e {
     case Var(x) => if x in ctx then Some(ctx[x]) else None
-    case Add(e,e') => 
-        var _ :- inferIntTy(ctx,e);
-        var _ :- inferIntTy(ctx,e');
+    case Lit(v) => Some(inferVal(v))
+    case Add(e1,e2) => 
+        var _ :- inferIntTy(ctx,e1);
+        var _ :- inferIntTy(ctx,e2);
         Some(IntTy)
-    case Sub(e,e') => 
-        var _ :- inferIntTy(ctx,e);
-        var _ :- inferIntTy(ctx,e');
+    case Sub(e1,e2) => 
+        var _ :- inferIntTy(ctx,e1);
+        var _ :- inferIntTy(ctx,e2);
         Some(IntTy)
-    case Or(e,e') =>
-        var _ :- inferBoolTy(ctx,e);
-        var _ :- inferBoolTy(ctx,e');
+    case Or(e1,e2) =>
+        var _ :- inferBoolTy(ctx,e1);
+        var _ :- inferBoolTy(ctx,e2);
         Some(BoolTy)
-    case And(e,e') =>
-        var _ :- inferBoolTy(ctx,e);
-        var _ :- inferBoolTy(ctx,e');
+    case And(e1,e2) =>
+        var _ :- inferBoolTy(ctx,e1);
+        var _ :- inferBoolTy(ctx,e2);
+        Some(BoolTy)
+    case Eq(e1,e2) =>
+        var _ :- infer(ctx,e1);
+        var _ :- infer(ctx,e2);
         Some(BoolTy)
     case Record(es) =>
         var tm :- inferRecordExpr(ctx,es);
         Some(RecordTy(tm))
-    case RecordProj(e,f) =>
-        var m :- inferRecordTy(ctx,e);
+    case RecordProj(e',f) =>
+        var m :- inferRecordTy(ctx,e');
         lookup(m,f)
+    case If(eb,e1,e2) =>
+        var _ :- inferBoolTy(ctx,eb);
+        var t :- infer(ctx,e1);
+        var t' :- infer(ctx,e2);
+        if t == t' then Some(t) else None
   }
 }
 
@@ -148,6 +166,16 @@ function inferRecordExpr(ctx : Ctx, es : seq<(string,Term)>) : Option<map<string
     if k in tm then Some(tm) else Some(tm[k := t])
 }
 
+function inferVal(v : Val) : Ty
+  decreases v , 1
+{
+  match v {
+    case IntVal(_) => IntTy
+    case BoolVal(_) => BoolTy
+    case RecordVal(m) => RecordTy(map k | k in m :: inferVal(m[k]))
+  }
+}
+
 function valHasType(v : Val, t : Ty) : bool {
   match (v,t) {
     case (IntVal(_),IntTy) => true
@@ -157,27 +185,38 @@ function valHasType(v : Val, t : Ty) : bool {
   }
 }
 
-lemma sound (env : Env, ctx : Ctx, e : Term)
-  requires forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
+lemma inferValSound(v : Val)
+  ensures valHasType(v,inferVal(v))
+{}
+
+predicate envHasCtx(env : Env, ctx : Ctx){
+    forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
+}
+
+lemma soundMonadic(env : Env, ctx : Ctx, e : Term)
+  requires envHasCtx(env,ctx)
   requires infer(ctx,e).Some?
   ensures eval(env,e).Some? && valHasType(eval(env,e).value,infer(ctx,e).value)
 {
   match e {
     case Var(_) =>
-    case Add(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case Sub(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case Or(e,e') => sound(env,ctx,e); sound(env,ctx,e');
-    case And(e,e') => sound(env,ctx,e); sound(env,ctx,e');
+    case Lit(v) => inferValSound(v);
+    case Add(e1,e2) => soundMonadic(env,ctx,e1); soundMonadic(env,ctx,e2);
+    case Sub(e1,e2) => soundMonadic(env,ctx,e1); soundMonadic(env,ctx,e2);
+    case Or(e1,e2) => soundMonadic(env,ctx,e1); soundMonadic(env,ctx,e2);
+    case And(e1,e2) => soundMonadic(env,ctx,e1); soundMonadic(env,ctx,e2);
+    case Eq(e1,e2) => soundMonadic(env,ctx,e1); soundMonadic(env,ctx,e2);
     case Record(es) =>
       var mt :| inferRecordExpr(ctx,es) == Some(mt);
       invertRecordTck(ctx,es);
       forall i | 0 <= i < |es|
         ensures eval(env,es[i].1).Some? && valHasType(eval(env,es[i].1).value,infer(ctx,es[i].1).value)
       {
-        sound(env,ctx,es[i].1);
+        soundMonadic(env,ctx,es[i].1);
       }
       recordEvalLemma(env,es);
-    case RecordProj(e,f) => sound(env,ctx,e);
+    case RecordProj(e',f) => soundMonadic(env,ctx,e');
+    case If(eb,e1,e2) => soundMonadic(env,ctx,eb); soundMonadic(env,ctx,e1); soundMonadic(env,ctx,e2);
   }
 }
 

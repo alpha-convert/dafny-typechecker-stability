@@ -60,4 +60,13 @@ module def.std {
   {
     if t in m then Some(m[t]) else None
   }
+
+
+  opaque function mapM<T,U,V>(f : U -> Option<V>, m : map<T,U>) : (res : Option<map<T,V>>)
+    ensures res.Some? ==> forall k :: k in res.value ==> k in m && f(m[k]).Some? && f(m[k]).value == res.value[k]
+    ensures (forall k :: k in m ==> f(m[k]).Some?) ==> res.Some? && m.Keys <= res.value.Keys
+  {
+    if (forall k :: k in m ==> f(m[k]).Some?) then Some(map k | k in m :: f(m[k]).value)
+    else None
+  }
 }
