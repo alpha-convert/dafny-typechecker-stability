@@ -1,59 +1,13 @@
 include "std.dfy"
 include "util.dfy"
 include "lang.dfy"
+include "evaluator.dfy"
 
 import opened def.std
 import opened util
 import opened lang
+import opened evaluator
 
-function eval(env : Env, e : Term) : Option<Val> {
-  match e {
-    case Lit(v) => Some(v)
-    case Var(x) => if x in env then Some(env[x]) else None
-    case Add(e1,e2) => match (eval(env,e1),eval(env,e2)) {
-                        case (Some(IntVal(v1)),Some(IntVal(v2))) => Some(IntVal(v1 + v2)) 
-                        case _ => None
-                      }
-    case Sub(e1,e2) => match (eval(env,e1),eval(env,e2)) {
-                        case (Some(IntVal(v1)),Some(IntVal(v2))) => Some(IntVal(v1 - v2)) 
-                        case _ => None
-                      }
-    case Or(e1,e2) => match (eval(env,e1),eval(env,e2)) {
-                        case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 || b2)) 
-                        case _ => None
-                      }
-    case And(e1,e2) => match (eval(env,e1),eval(env,e2)) {
-                        case (Some(BoolVal(b1)),Some(BoolVal(b2))) => Some(BoolVal(b1 && b2)) 
-                        case _ => None
-                      }
-    case Eq(e1,e2) => match (eval(env,e1),eval(env,e2)) {
-                        case (Some(v1),Some(v2)) => Some(BoolVal(v1 == v2)) 
-                        case _ => None
-                      }
-    case Record(em) => match evalRecord(env,em) {
-      case Some(m) => Some(RecordVal(m))
-      case _ => None
-    }
-    case RecordProj(e',f) => match eval(env,e') {
-      case Some(RecordVal(m)) => if f in m then Some(m[f]) else None
-      case _ => None
-    }
-    case If(eb,e1,e2) => match eval(env,eb) {
-      case Some(BoolVal(b)) => if b then eval(env,e1) else eval(env,e2)
-      case _ => None
-    }
-  }
-}
-
-function evalRecord(env : Env, es : seq<(string,Term)>) : Option<map<string,Val>> {
-  if es == [] then Some(map[])
-  else
-    var k := es[0].0;
-    match (eval(env,es[0].1), evalRecord(env,es[1..])) {
-      case (Some(v), Some(vm)) => if k in vm.Keys then Some(vm) else Some(vm[k := v])
-      case _ => None
-    }
-}
 
 function infer(ctx : Ctx, e : Term) : Option<Ty> {
   match e {
@@ -127,16 +81,18 @@ lemma inferValSound(v : Val)
   ensures valHasType(v,inferVal(v))
 {}
 
+ghost predicate isSafe(env : Env, e : Term, t : Ty) {
+  eval(env,e).Some? && valHasType(eval(env,e).value,t)
+}
+
 predicate envHasCtx(env : Env, ctx : Ctx){
     forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
 }
 
-
-
 lemma soundDirect(env : Env, ctx : Ctx, e : Term)
   requires envHasCtx(env,ctx)
   requires infer(ctx,e).Some?
-  ensures eval(env,e).Some? && valHasType(eval(env,e).value,infer(ctx,e).value)
+  ensures isSafe(env,e,infer(ctx,e).value)
 {
   match e {
     case Var(_) =>
@@ -154,7 +110,7 @@ lemma soundDirect(env : Env, ctx : Ctx, e : Term)
       {
         soundDirect(env,ctx,es[i].1);
       }
-      recordEvalLemma(env,es);
+      evalRecordExprLemma(env,es);
     case RecordProj(e',f) => soundDirect(env,ctx,e');
     case If(eb,e1,e2) => soundDirect(env,ctx,eb); soundDirect(env,ctx,e1); soundDirect(env,ctx,e2);
   }
@@ -169,9 +125,3 @@ lemma invertRecordTck(ctx : Ctx, es : seq<(string,Term)>)
   ensures forall k | k in inferRecord(ctx,es).value.Keys :: KeyExists(k,es) && infer(ctx,LastOfKey(k,es)).value == inferRecord(ctx,es).value[k]
 {}
 
-lemma recordEvalLemma(env : Env, es : seq<(string,Term)>)
-  requires forall i | 0 <= i < |es| :: eval(env,es[i].1).Some?
-  ensures evalRecord(env,es).Some?
-  ensures forall i | 0 <= i < |es| :: es[i].0 in evalRecord(env,es).value.Keys
-  ensures forall k | k in evalRecord(env,es).value.Keys :: KeyExists(k,es) && eval(env,LastOfKey(k,es)).value == evalRecord(env,es).value[k]
-{}

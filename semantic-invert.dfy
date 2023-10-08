@@ -28,8 +28,19 @@ lemma subtyRefl(t : Ty)
   }
 }
 
-function infer(ctx : Ctx, e : Term) : Option<Ty>
+lemma subtyTrans(t1 : Ty, t2 : Ty, t3 : Ty)
+  requires subty(t1,t2)
+  requires subty(t2,t3)
+  ensures subty(t1,t3)
+{
+  match (t1,t2,t3) {
+    case (BoolTy,BoolTy,BoolTy) => 
+    case (IntTy,IntTy,IntTy) => 
+    case (RecordTy(mt1),RecordTy(m2),RecordTy(mt3)) => 
+  }
+}
 
+opaque function infer(ctx : Ctx, e : Term) : Option<Ty>
     decreases e, 0
 {
   match e {
@@ -100,7 +111,7 @@ function inferRecordTy(ctx : Ctx, e : Term) : Option<map<string,Ty>>
     }
 }
 
-function inferRecordExpr(ctx : Ctx, es : seq<(string,Term)>) : Option<map<string,Ty>>
+opaque function inferRecordExpr(ctx : Ctx, es : seq<(string,Term)>) : Option<map<string,Ty>>
     decreases es
 {
   if es == [] then Some(map[])
@@ -110,15 +121,6 @@ function inferRecordExpr(ctx : Ctx, es : seq<(string,Term)>) : Option<map<string
     var tm :- inferRecordExpr(ctx,es[1..]);
     if k in tm then Some(tm) else Some(tm[k := t])
 }
-
-lemma invertRecordTck(ctx : Ctx, es : seq<(string,Term)>)
-  requires inferRecordExpr(ctx,es).Some?
-  ensures forall i | 0 <= i < |es| :: infer(ctx,es[i].1).Some?
-  // Every result term in es typechecks, and every key appears in the result.
-  ensures forall i | 0 <= i < |es| :: es[i].0 in inferRecordExpr(ctx,es).value.Keys
-  //For every key in the output, it existed in the input, and its type is the result of inferring the type of the last instance of k.
-  ensures forall k | k in inferRecordExpr(ctx,es).value.Keys :: KeyExists(k,es) && infer(ctx,LastOfKey(k,es)).value == inferRecordExpr(ctx,es).value[k]
-{}
 
 
 
@@ -133,12 +135,154 @@ function inferVal(v : Val) : Ty
 }
 
 
-function check(ctx : Ctx, e : Term, t : Ty) : Option<()>
+opaque function check(ctx : Ctx, e : Term, t : Ty) : Option<()>
   decreases e , 1
 {
   var t' :- infer(ctx,e);
   if subty(t',t) then Some(()) else None
 }
+
+ghost predicate someTypeChecks(ctx : Ctx, e : Term)
+{
+  exists t :: check(ctx,e,t).Some?
+}
+
+lemma invertVarCheck(ctx : Ctx, x : string, t : Ty)
+    requires check(ctx,Var(x),t).Some? 
+    ensures x in ctx
+    ensures subty(ctx[x],t)
+{
+    reveal check();
+    reveal infer();
+}
+
+lemma invertLitCheck(ctx : Ctx, v : Val, t : Ty)
+    requires check(ctx,Lit(v),t).Some?
+    ensures subty(inferVal(v),t)
+{
+    reveal infer();
+    reveal check();
+}
+
+lemma invertAddCheck(ctx : Ctx, e1 : Term, e2 : Term, t : Ty)
+    requires check(ctx,Add(e1,e2),t).Some?
+    ensures check(ctx,e1,IntTy).Some?
+    ensures check(ctx,e2,IntTy).Some?
+    ensures t == IntTy
+{
+    reveal infer();
+    reveal check();
+}
+
+lemma invertSubCheck(ctx : Ctx, e1 : Term, e2 : Term, t : Ty)
+    requires check(ctx,Sub(e1,e2),t).Some?
+    ensures check(ctx,e1,IntTy).Some?
+    ensures check(ctx,e2,IntTy).Some?
+    ensures t == IntTy
+{
+    reveal infer();
+    reveal check();
+}
+
+lemma invertAndCheck(ctx : Ctx, e1 : Term, e2 : Term, t : Ty)
+    requires check(ctx,And(e1,e2),t).Some?
+    ensures check(ctx,e1,BoolTy).Some?
+    ensures check(ctx,e2,BoolTy).Some?
+    ensures t == BoolTy
+{
+    reveal check();
+    reveal infer();
+}
+
+lemma invertOrCheck(ctx : Ctx, e1 : Term, e2 : Term, t : Ty)
+    requires check(ctx,Or(e1,e2),t).Some?
+    ensures check(ctx,e1,BoolTy).Some?
+    ensures check(ctx,e2,BoolTy).Some?
+    ensures t == BoolTy
+{
+    reveal check();
+    reveal infer();
+}
+
+lemma invertEqCheck(ctx : Ctx, e1 : Term, e2 : Term, t : Ty)
+    requires check(ctx,Eq(e1,e2),t).Some?
+    ensures exists t1 :: check(ctx,e1,t1).Some?
+    ensures exists t2 :: check(ctx,e2,t2).Some?
+    ensures t == BoolTy
+{
+    reveal check();
+    reveal infer();
+    assert infer(ctx,e1).Some?;
+    assert infer(ctx,e2).Some?;
+    subtyRefl(infer(ctx,e1).value);
+    subtyRefl(infer(ctx,e2).value);
+    assert check(ctx,e1,infer(ctx,e1).value).Some?;
+    assert check(ctx,e2,infer(ctx,e2).value).Some?;
+}
+
+lemma invertRecordProjCheck(ctx : Ctx, e : Term, k : string, t : Ty)
+  requires check(ctx,RecordProj(e,k),t).Some?;
+  ensures exists mt :: check(ctx,e,RecordTy(mt)).Some? && k in mt && subty(mt[k],t)
+{
+  reveal check();
+  reveal infer();
+  var mt := inferRecordTy(ctx,e).value;
+  subtyRefl(RecordTy(mt));
+}
+
+lemma invertRecordTckRaw(ctx : Ctx, es : seq<(string,Term)>)
+  requires inferRecordExpr(ctx,es).Some?
+  ensures forall i | 0 <= i < |es| :: infer(ctx,es[i].1).Some?
+  // Every result term in es typechecks, and every key appears in the result.
+  ensures forall i | 0 <= i < |es| :: es[i].0 in inferRecordExpr(ctx,es).value.Keys
+  //For every key in the output, it existed in the input, and its type is the result of inferring the type of the last instance of k.
+  ensures forall k | k in inferRecordExpr(ctx,es).value.Keys :: KeyExists(k,es) && infer(ctx,LastOfKey(k,es)).value == inferRecordExpr(ctx,es).value[k]
+{
+  reveal check();
+  reveal infer();
+  reveal inferRecordExpr();
+}
+
+
+
+lemma invertRecordCheck(ctx : Ctx, es : seq<(string,Term)>, t : Ty)
+  requires check(ctx,Record(es),t).Some?
+  ensures inferRecordExpr(ctx,es).Some?
+  ensures forall i :: 0 <= i < |es| ==> someTypeChecks(ctx,es[i].1)
+
+  ensures exists mt :: t == RecordTy(mt) && (forall k :: k in mt ==> KeyExists(k,es) && check(ctx,LastOfKey(k,es),mt[k]).Some?)
+{
+  reveal check();
+  reveal infer();
+  reveal inferRecordExpr();
+  invertRecordTckRaw(ctx,es);
+
+  forall i | 0 <= i < |es|
+    ensures exists t :: check(ctx,es[i].1,t).Some?
+  {
+    assert infer(ctx,es[i].1).Some?;
+    subtyRefl(infer(ctx,es[i].1).value);
+    assert check(ctx,es[i].1,infer(ctx,es[i].1).value).Some?;
+  }
+
+}
+
+lemma invertIfCheck(ctx : Ctx, eb : Term, e : Term, e' : Term, t : Ty)
+    requires check(ctx,If(eb,e,e'),t).Some?
+    ensures check(ctx,eb,BoolTy).Some?
+    ensures check(ctx,e,t).Some?
+    ensures check(ctx,e',t).Some?
+{
+    reveal check();
+    reveal infer();
+    assert infer(ctx,e).Some?;
+    assert check(ctx,e',infer(ctx,e).value).Some?;
+    // assert infer(ctx,e').Some?;
+    // assert check(ctx,e,t).Some?;
+    assert subty(infer(ctx,e').value,infer(ctx,e).value);
+    subtyTrans(infer(ctx,e').value,infer(ctx,e).value,t);
+}
+
 
 function valHasType(v : Val, t : Ty) : bool {
   match (v,t) {
@@ -293,39 +437,39 @@ predicate envHasCtx(env : Env, ctx : Ctx){
     forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
 }
 
-lemma soundSemantic (env : Env, ctx : Ctx, e : Term, t : Ty)
+lemma soundSemanticAxiomaticCheck (env : Env, ctx : Ctx, e : Term, t : Ty)
   requires envHasCtx(env,ctx)
   requires check(ctx,e,t).Some?
   ensures isSafe(env,e,t)
 {
   match e {
-    case Var(x) => varIsSafe(env,x,ctx[x]); isSafeSubtyCompat(env,e,ctx[x],t);
-    case Lit(v) => litIsSafe(env,v); isSafeSubtyCompat(env,e,inferVal(v),t);
-    case Add(e1,e2) => soundSemantic(env,ctx,e1,IntTy); soundSemantic(env,ctx,e2,IntTy); addIsSafe(env,e1,e2);
-    case Sub(e1,e2) => soundSemantic(env,ctx,e1,IntTy); soundSemantic(env,ctx,e2,IntTy); subIsSafe(env,e1,e2);
-    case Or(e1,e2) => soundSemantic(env,ctx,e1,BoolTy); soundSemantic(env,ctx,e2,BoolTy); orIsSafe(env,e1,e2);
-    case And(e1,e2) => soundSemantic(env,ctx,e1,BoolTy); soundSemantic(env,ctx,e2,BoolTy); andIsSafe(env,e1,e2);
-    case Eq(e1,e2) => 
-    subtyRefl(infer(ctx,e1).value);
-    subtyRefl(infer(ctx,e2).value);
-    soundSemantic(env,ctx,e1,infer(ctx,e1).value);
-    soundSemantic(env,ctx,e2,infer(ctx,e2).value);
-    hideTheType(env,e1,infer(ctx,e1).value);
-    hideTheType(env,e2,infer(ctx,e2).value);
+    case Var(x) => invertVarCheck(ctx,x,t); varIsSafe(env,x,ctx[x]); isSafeSubtyCompat(env,e,ctx[x],t);
+    case Lit(v) => invertLitCheck(ctx,v,t); litIsSafe(env,v); isSafeSubtyCompat(env,e,inferVal(v),t);
+    case Add(e1,e2) => invertAddCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,IntTy); soundSemanticAxiomaticCheck(env,ctx,e2,IntTy); addIsSafe(env,e1,e2);
+    case Sub(e1,e2) => invertSubCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,IntTy); soundSemanticAxiomaticCheck(env,ctx,e2,IntTy); subIsSafe(env,e1,e2);
+    case Or(e1,e2) => invertOrCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,BoolTy); soundSemanticAxiomaticCheck(env,ctx,e2,BoolTy); orIsSafe(env,e1,e2);
+    case And(e1,e2) => invertAndCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,BoolTy); soundSemanticAxiomaticCheck(env,ctx,e2,BoolTy); andIsSafe(env,e1,e2);
+    case Eq(e1,e2) => invertEqCheck(ctx,e1,e2,t);
+    var t1 :| check(ctx,e1,t1).Some?;
+    var t2 :| check(ctx,e2,t2).Some?;
+    soundSemanticAxiomaticCheck(env,ctx,e1,t1);
+    soundSemanticAxiomaticCheck(env,ctx,e2,t2);
+    hideTheType(env,e1,t1);
+    hideTheType(env,e2,t2);
     eqIsSafe(env,e1,e2);
     case Record(es) =>
-      var mt :| inferRecordExpr(ctx,es) == Some(mt);
-      assert subty(RecordTy(mt),t);
-      invertRecordTck(ctx,es);
+      invertRecordCheck(ctx,es,t);
+      var mt :| t == RecordTy(mt) && (forall k :: k in mt ==> KeyExists(k,es) && check(ctx,LastOfKey(k,es),mt[k]).Some?);
+      assert forall i :: 0 <= i < |es| ==> someTypeChecks(ctx,es[i].1);
       
       assert forall i :: 0 <= i < |es| ==> isSafeAtSomeType(env,es[i].1) by {
         forall i | 0 <= i < |es|
           ensures isSafeAtSomeType(env,es[i].1)
         {
-          var t := infer(ctx,es[i].1).value;
-          subtyRefl(t);
-          soundSemantic(env,ctx,es[i].1,t);
-          hideTheType(env,es[i].1,t);
+          assert someTypeChecks(ctx,es[i].1);
+          var t' :| check(ctx,es[i].1,t').Some?;
+          soundSemanticAxiomaticCheck(env,ctx,es[i].1,t');
+          hideTheType(env,es[i].1,t');
         }
       }
 
@@ -334,27 +478,23 @@ lemma soundSemantic (env : Env, ctx : Ctx, e : Term, t : Ty)
           ensures KeyExists(k,es)
           ensures isSafe(env,LastOfKey(k,es),mt[k])
         {
-          assert infer(ctx,LastOfKey(k,es)).value == mt[k];
-          subtyRefl(mt[k]);
-          soundSemantic(env,ctx,LastOfKey(k,es),mt[k]);
+          assert check(ctx,LastOfKey(k,es),mt[k]).Some?;
+          soundSemanticAxiomaticCheck(env,ctx,LastOfKey(k,es),mt[k]);
         }
       }
-
       recordExprIsSafe(env,es,mt);
-      isSafeSubtyCompat(env,e,RecordTy(mt),t);
       
     case RecordProj(e',f) =>
-      var mt := inferRecordTy(ctx,e').value;
-      subtyRefl(RecordTy(mt));
-      soundSemantic(env,ctx,e',RecordTy(mt));
+      invertRecordProjCheck(ctx,e',f,t);
+      var mt :| check(ctx,e',RecordTy(mt)).Some? && f in mt && subty(mt[f],t);
+      soundSemanticAxiomaticCheck(env,ctx,e',RecordTy(mt));
       recordProjIsSafe(env,e',f,mt);
       isSafeSubtyCompat(env,e,mt[f],t);
     case If(eb,e1,e2) =>
-      soundSemantic(env,ctx,eb,BoolTy);
-      subtyRefl(infer(ctx,e1).value);
-      soundSemantic(env,ctx,e1,infer(ctx,e1).value);
-      soundSemantic(env,ctx,e2,infer(ctx,e1).value);
-      ifIsSafe(env,eb,e1,e2,infer(ctx,e1).value);
-      isSafeSubtyCompat(env,e,infer(ctx,e1).value,t);
+      invertIfCheck(ctx,eb,e1,e2,t);
+      soundSemanticAxiomaticCheck(env,ctx,eb,BoolTy);
+      soundSemanticAxiomaticCheck(env,ctx,e1,t);
+      soundSemanticAxiomaticCheck(env,ctx,e2,t);
+      ifIsSafe(env,eb,e1,e2,t);
   }
 }
