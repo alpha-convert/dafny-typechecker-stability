@@ -221,7 +221,7 @@ lemma invertEqCheck(ctx : Ctx, e1 : Term, e2 : Term, t : Ty)
 }
 
 lemma invertRecordProjCheck(ctx : Ctx, e : Term, k : string, t : Ty)
-  requires check(ctx,RecordProj(e,k),t).Some?;
+  requires check(ctx,RecordProj(e,k),t).Some?
   ensures exists mt :: check(ctx,e,RecordTy(mt)).Some? && k in mt && subty(mt[k],t)
 {
   reveal check();
@@ -437,7 +437,7 @@ predicate envHasCtx(env : Env, ctx : Ctx){
     forall k :: k in ctx ==> k in env && valHasType(env[k],ctx[k])
 }
 
-lemma soundSemanticAxiomaticCheck (env : Env, ctx : Ctx, e : Term, t : Ty)
+lemma soundInversionSemantic (env : Env, ctx : Ctx, e : Term, t : Ty)
   requires envHasCtx(env,ctx)
   requires check(ctx,e,t).Some?
   ensures isSafe(env,e,t)
@@ -445,15 +445,15 @@ lemma soundSemanticAxiomaticCheck (env : Env, ctx : Ctx, e : Term, t : Ty)
   match e {
     case Var(x) => invertVarCheck(ctx,x,t); varIsSafe(env,x,ctx[x]); isSafeSubtyCompat(env,e,ctx[x],t);
     case Lit(v) => invertLitCheck(ctx,v,t); litIsSafe(env,v); isSafeSubtyCompat(env,e,inferVal(v),t);
-    case Add(e1,e2) => invertAddCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,IntTy); soundSemanticAxiomaticCheck(env,ctx,e2,IntTy); addIsSafe(env,e1,e2);
-    case Sub(e1,e2) => invertSubCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,IntTy); soundSemanticAxiomaticCheck(env,ctx,e2,IntTy); subIsSafe(env,e1,e2);
-    case Or(e1,e2) => invertOrCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,BoolTy); soundSemanticAxiomaticCheck(env,ctx,e2,BoolTy); orIsSafe(env,e1,e2);
-    case And(e1,e2) => invertAndCheck(ctx,e1,e2,t); soundSemanticAxiomaticCheck(env,ctx,e1,BoolTy); soundSemanticAxiomaticCheck(env,ctx,e2,BoolTy); andIsSafe(env,e1,e2);
+    case Add(e1,e2) => invertAddCheck(ctx,e1,e2,t); soundInversionSemantic(env,ctx,e1,IntTy); soundInversionSemantic(env,ctx,e2,IntTy); addIsSafe(env,e1,e2);
+    case Sub(e1,e2) => invertSubCheck(ctx,e1,e2,t); soundInversionSemantic(env,ctx,e1,IntTy); soundInversionSemantic(env,ctx,e2,IntTy); subIsSafe(env,e1,e2);
+    case Or(e1,e2) => invertOrCheck(ctx,e1,e2,t); soundInversionSemantic(env,ctx,e1,BoolTy); soundInversionSemantic(env,ctx,e2,BoolTy); orIsSafe(env,e1,e2);
+    case And(e1,e2) => invertAndCheck(ctx,e1,e2,t); soundInversionSemantic(env,ctx,e1,BoolTy); soundInversionSemantic(env,ctx,e2,BoolTy); andIsSafe(env,e1,e2);
     case Eq(e1,e2) => invertEqCheck(ctx,e1,e2,t);
     var t1 :| check(ctx,e1,t1).Some?;
     var t2 :| check(ctx,e2,t2).Some?;
-    soundSemanticAxiomaticCheck(env,ctx,e1,t1);
-    soundSemanticAxiomaticCheck(env,ctx,e2,t2);
+    soundInversionSemantic(env,ctx,e1,t1);
+    soundInversionSemantic(env,ctx,e2,t2);
     hideTheType(env,e1,t1);
     hideTheType(env,e2,t2);
     eqIsSafe(env,e1,e2);
@@ -468,7 +468,7 @@ lemma soundSemanticAxiomaticCheck (env : Env, ctx : Ctx, e : Term, t : Ty)
         {
           assert someTypeChecks(ctx,es[i].1);
           var t' :| check(ctx,es[i].1,t').Some?;
-          soundSemanticAxiomaticCheck(env,ctx,es[i].1,t');
+          soundInversionSemantic(env,ctx,es[i].1,t');
           hideTheType(env,es[i].1,t');
         }
       }
@@ -479,7 +479,7 @@ lemma soundSemanticAxiomaticCheck (env : Env, ctx : Ctx, e : Term, t : Ty)
           ensures isSafe(env,LastOfKey(k,es),mt[k])
         {
           assert check(ctx,LastOfKey(k,es),mt[k]).Some?;
-          soundSemanticAxiomaticCheck(env,ctx,LastOfKey(k,es),mt[k]);
+          soundInversionSemantic(env,ctx,LastOfKey(k,es),mt[k]);
         }
       }
       recordExprIsSafe(env,es,mt);
@@ -487,14 +487,14 @@ lemma soundSemanticAxiomaticCheck (env : Env, ctx : Ctx, e : Term, t : Ty)
     case RecordProj(e',f) =>
       invertRecordProjCheck(ctx,e',f,t);
       var mt :| check(ctx,e',RecordTy(mt)).Some? && f in mt && subty(mt[f],t);
-      soundSemanticAxiomaticCheck(env,ctx,e',RecordTy(mt));
+      soundInversionSemantic(env,ctx,e',RecordTy(mt));
       recordProjIsSafe(env,e',f,mt);
       isSafeSubtyCompat(env,e,mt[f],t);
     case If(eb,e1,e2) =>
       invertIfCheck(ctx,eb,e1,e2,t);
-      soundSemanticAxiomaticCheck(env,ctx,eb,BoolTy);
-      soundSemanticAxiomaticCheck(env,ctx,e1,t);
-      soundSemanticAxiomaticCheck(env,ctx,e2,t);
+      soundInversionSemantic(env,ctx,eb,BoolTy);
+      soundInversionSemantic(env,ctx,e1,t);
+      soundInversionSemantic(env,ctx,e2,t);
       ifIsSafe(env,eb,e1,e2,t);
   }
 }
