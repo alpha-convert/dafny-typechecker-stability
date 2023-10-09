@@ -6,18 +6,19 @@ clean-test-results:
 restore-dafny:
 	dotnet tool restore
 
-NUM_ITERATIONS = 100
+NUM_ITERATIONS = 250
 
 MEASURE_COMPLEXITY_ARGS = --iterations:$(NUM_ITERATIONS) --log-format csv 
 
 $(SOURCES): restore-dafny clean-test-results
-	-dotnet tool run dafny measure-complexity $(MEASURE_COMPLEXITY_ARGS) $@
+	-caffeinate dotnet tool run dafny measure-complexity $(MEASURE_COMPLEXITY_ARGS) $@
 
 stress : $(SOURCES)
 
 clean:
 	rm -rf build
 	rm -rf TestResults/*
+	rm *.dll
 
 
 love:
