@@ -1,0 +1,18 @@
+{
+    "version": 1,
+    "isRoot": true,
+    "tools": {
+      "dafny": {
+        "version": "4.3.0",
+        "commands": [
+          "dafny"
+        ]
+      },
+      "dafny-reportgenerator": {
+        "version": "1.2.0",
+        "commands": [
+          "dafny-reportgenerator"
+        ]
+      }
+    }
+  }
