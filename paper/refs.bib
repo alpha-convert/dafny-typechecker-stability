@@ -1,0 +1,1073 @@
+@STRING{icfp =      "{ACM} {SIGPLAN} {I}nternational {C}onference on {F}unctional {P}rogramming
+                    ({ICFP})"}
+@STRING{icfp10 =    icfp # ", Baltimore, Maryland" }
+@STRING{icfp08 =    icfp # ", Victoria, Canada" }
+@STRING{icfp04 =    icfp # ", Snowbird, Utah" }
+@STRING{icfp03 =    icfp # ", Uppsala, Sweden" }
+@STRING{icfp02 =    icfp # ", Pittsburgh, Pennsylvania" }
+@STRING{icfp01 =    icfp # ", Firenze, Italy" }
+@STRING{icfp00 =    icfp # ", Montreal, Canada" }
+@STRING{icfp99 =    icfp # ", Paris, France" }
+@STRING{icfp98 =    icfp # ", Baltimore, Maryland" }
+@STRING{icfp97 =    icfp # ", Amsterdam, The Netherlands" }
+@STRING{icfp96 =    icfp # ", Philadelphia, Pennsylvania" }
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%     STREAMS     %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Very old work / dataflow
+
+@article{gilles1974semantics,
+  title    = {The semantics of a simple language for parallel programming},
+  author   = {Gilles Kahn},
+  journal  = {Information Processing},
+  volume   = {74},
+  optpages = {471--475},
+  year     = {1974}
+}
+
+@article{burge1975stream,
+  title        = {Stream processing functions},
+  author       = {Burge, William H},
+  journal      = {IBM Journal of Research and Development},
+  volume       = {19},
+  number       = {1},
+  optpages     = {12--25},
+  year         = {1975},
+  optpublisher = {IBM}
+}
+
+@article{stephens1997survey,
+  title     = {A survey of stream processing},
+  author    = {Stephens, Robert},
+  journal   = {Acta Informatica},
+  volume    = {34},
+  number    = {7},
+  optpages  = {491--541},
+  year      = {1997},
+  publisher = {Springer}
+}
+
+% Synchronous languages
+
+@article{lee1987synchronous,
+  title        = {Synchronous data flow},
+  author       = {Lee, Edward A and Messerschmitt, David G},
+  journal      = {Proceedings of the IEEE},
+  volume       = {75},
+  number       = {9},
+  optpages     = {1235--1245},
+  year         = {1987},
+  optpublisher = {IEEE}
+}
+
+@inproceedings{thies2002streamit,
+  title        = {{StreamIt}: A language for streaming applications},
+  author       = {Thies, William and Karczmarek, Michal and Amarasinghe, Saman},
+  booktitle    = {International Conference on Compiler Construction},
+  optpages     = {179--196},
+  year         = {2002},
+  organization = {Springer}
+}
+
+@article{BCEHlGdS2003SL,
+  title        = {The synchronous languages 12 years later},
+  author       = {Benveniste, Albert and Caspi, Paul and Edwards, Stephen A and Halbwachs, Nicolas and Le Guernic, Paul and De Simone, Robert},
+  journal      = {Proceedings of the IEEE},
+  volume       = {91},
+  number       = {1},
+  optpages     = {64--83},
+  year         = {2003},
+  optpublisher = {IEEE}
+}
+
+% FRP
+
+@inproceedings{elliott1997functional,
+  title     = {Functional reactive animation},
+  author    = {Elliott, Conal and Hudak, Paul},
+  booktitle = {Second ACM SIGPLAN International Conference on Functional Programming (ICFP)},
+  optpages  = {263--273},
+  year      = {1997}
+}
+@inproceedings{elliott1997modeling,
+  title     = {Modeling Interactive {3D} and Multimedia Animation with an Embedded Language.},
+  author    = {Elliott, Conal},
+  booktitle = {DSL},
+  optpages  = {285--296},
+  year      = {1997}
+}
+@inproceedings{wan2000functional,
+  title     = {Functional reactive programming from first principles},
+  author    = {Wan, Zhanyong and Hudak, Paul},
+  booktitle = {ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
+  optpages  = {242--252},
+  year      = {2000}
+}
+@inproceedings{nilsson2002functional,
+  title     = {Functional reactive programming, continued},
+  author    = {Nilsson, Henrik and Courtney, Antony and Peterson, John},
+  booktitle = {ACM SIGPLAN Workshop on Haskell},
+  optpages  = {51--64},
+  year      = {2002}
+}
+
+@inproceedings{ltlfrp,
+  author    = {Jeffrey, Alan},
+  title     = {LTL Types FRP: Linear-Time Temporal Logic Propositions as Types, Proofs as Functional Reactive Programs},
+  year      = {2012},
+  isbn      = {9781450311250},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/2103776.2103783},
+  doi       = {10.1145/2103776.2103783},
+  abstract  = {Functional Reactive Programming (FRP) is a form of reactive programming whose model is pure functions over signals. FRP is often expressed in terms of arrows with loops, which is the type class for a Freyd category (that is a premonoidal category with a cartesian centre) equipped with a premonoidal trace. This type system suffices to define the dataflow structure of a reactive program, but does not express its temporal properties. In this paper, we show that Linear-time Temporal Logic (LTL) is a natural extension of the type system for FRP, which constrains the temporal behaviour of reactive programs. We show that a constructive LTL can be defined in a dependently typed functional language, and that reactive programs form proofs of constructive LTL properties. In particular, implication in LTL gives rise to stateless functions on streams, and the "constrains" modality gives rise to causal functions. We show that reactive programs form a partially traced monoidal category, and hence can be given as a form of arrows with loops, where the type system enforces that only decoupled functions can be looped.},
+  booktitle = {Proceedings of the Sixth Workshop on Programming Languages Meets Program Verification},
+  pages     = {49–60},
+  numpages  = {12},
+  keywords  = {linear-time temporal logic, dependent types, functional reactive programming},
+  location  = {Philadelphia, Pennsylvania, USA},
+  series    = {PLPV '12}
+}
+
+@article{simplyratt,
+  author     = {Bahr, Patrick and Graulund, Christian Uldal and M\o{}gelberg, Rasmus Ejlers},
+  title      = {Simply RaTT: A Fitch-Style Modal Calculus for Reactive Programming without Space Leaks},
+  year       = {2019},
+  issue_date = {August 2019},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {3},
+  number     = {ICFP},
+  url        = {https://doi.org/10.1145/3341713},
+  doi        = {10.1145/3341713},
+  abstract   = {Functional reactive programming (FRP) is a paradigm for programming with signals and events, allowing the user to describe reactive programs on a high level of abstraction. For this to make sense, an FRP language must ensure that all programs are causal, and can be implemented without introducing space leaks and time leaks. To this end, some FRP languages do not give direct access to signals, but just to signal functions. Recently, modal types have been suggested as an alternative approach to ensuring causality in FRP languages in the synchronous case, giving direct access to the signal and event abstractions. This paper presents Simply RaTT, a new modal calculus for reactive programming. Unlike prior calculi, Simply RaTT uses a Fitch-style approach to modal types, which simplifies the type system and makes programs more concise. Echoing a previous result by Krishnaswami for a different language, we devise an operational semantics that safely executes Simply RaTT programs without space leaks. We also identify a source of time leaks present in other modal FRP languages: The unfolding of fixed points in delayed computations. The Fitch-style presentation allows an easy way to rules out these leaks, which appears not to be possible in the more traditional dual context approach.},
+  journal    = {Proc. ACM Program. Lang.},
+  month      = {jul},
+  articleno  = {109},
+  numpages   = {27},
+  keywords   = {Garbage collection, Type systems, Functional reactive programming, Synchronous data flow languages, Modal types}
+}
+
+@article{diamondsnotforever,
+  author     = {Bahr, Patrick and Graulund, Christian Uldal and M\o{}gelberg, Rasmus Ejlers},
+  title      = {Diamonds Are Not Forever: Liveness in Reactive Programming with Guarded Recursion},
+  year       = {2021},
+  issue_date = {January 2021},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {5},
+  number     = {POPL},
+  url        = {https://doi.org/10.1145/3434283},
+  doi        = {10.1145/3434283},
+  abstract   = {When designing languages for functional reactive programming (FRP) the main challenge is to provide the user with a simple, flexible interface for writing programs on a high level of abstraction while ensuring that all programs can be implemented efficiently in a low-level language. To meet this challenge, a new family of modal FRP languages has been proposed, in which variants of Nakano's guarded fixed point operator are used for writing recursive programs guaranteeing properties such as causality and productivity. As an apparent extension to this it has also been suggested to use Linear Temporal Logic (LTL) as a language for reactive programming through the Curry-Howard isomorphism, allowing properties such as termination, liveness and fairness to be encoded in types. However, these two ideas are in conflict with each other, since the fixed point operator introduces non-termination into the inductive types that are supposed to provide termination guarantees. In this paper we show that by regarding the modal time step operator of LTL a submodality of the one used for guarded recursion (rather than equating them), one can obtain a modal type system capable of expressing liveness properties while retaining the power of the guarded fixed point operator. We introduce the language Lively RaTT, a modal FRP language with a guarded fixed point operator and an `until' type constructor as in LTL, and show how to program with events and fair streams. Using a step-indexed Kripke logical relation we prove operational properties of Lively RaTT including productivity and causality as well as the termination and liveness properties expected of types from LTL. Finally, we prove that the type system of Lively RaTT guarantees the absence of implicit space leaks.},
+  journal    = {Proc. ACM Program. Lang.},
+  month      = {jan},
+  articleno  = {2},
+  numpages   = {28},
+  keywords   = {Synchronous Data Flow Languages, Linear Temporal Logic, Modal Types, Type Systems, Functional Reactive Programming}
+}
+
+@article{10.1145/2578855.2535881,
+  author     = {Cave, Andrew and Ferreira, Francisco and Panangaden, Prakash and Pientka, Brigitte},
+  title      = {Fair Reactive Programming},
+  year       = {2014},
+  issue_date = {January 2014},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {49},
+  number     = {1},
+  issn       = {0362-1340},
+  url        = {https://doi.org/10.1145/2578855.2535881},
+  doi        = {10.1145/2578855.2535881},
+  abstract   = {Functional Reactive Programming (FRP) models reactive systems with events and signals, which have previously been observed to correspond to the "eventually" and "always" modalities of linear temporal logic (LTL). In this paper, we define a constructive variant of LTL with least fixed point and greatest fixed point operators in the spirit of the modal mu-calculus, and give it a proofs-as-programs interpretation as a foundational calculus for reactive programs. Previous work emphasized the propositions-as-types part of the correspondence between LTL and FRP; here we emphasize the proofs-as-programs part by employing structural proof theory. We show that the type system is expressive enough to enforce liveness properties such as the fairness of schedulers and the eventual delivery of results. We illustrate programming in this calculus using (co)iteration operators. We prove type preservation of our operational semantics, which guarantees that our programs are causal. We give also a proof of strong normalization which provides justification that our programs are productive and that they satisfy liveness properties derived from their types.},
+  journal    = {SIGPLAN Not.},
+  month      = {jan},
+  pages      = {361–372},
+  numpages   = {12},
+  keywords   = {functional reactive programming, liveness, propositions-as-types, temporal logic}
+}
+
+@inproceedings{fairreactive,
+  author    = {Cave, Andrew and Ferreira, Francisco and Panangaden, Prakash and Pientka, Brigitte},
+  title     = {Fair Reactive Programming},
+  year      = {2014},
+  isbn      = {9781450325448},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/2535838.2535881},
+  doi       = {10.1145/2535838.2535881},
+  abstract  = {Functional Reactive Programming (FRP) models reactive systems with events and signals, which have previously been observed to correspond to the "eventually" and "always" modalities of linear temporal logic (LTL). In this paper, we define a constructive variant of LTL with least fixed point and greatest fixed point operators in the spirit of the modal mu-calculus, and give it a proofs-as-programs interpretation as a foundational calculus for reactive programs. Previous work emphasized the propositions-as-types part of the correspondence between LTL and FRP; here we emphasize the proofs-as-programs part by employing structural proof theory. We show that the type system is expressive enough to enforce liveness properties such as the fairness of schedulers and the eventual delivery of results. We illustrate programming in this calculus using (co)iteration operators. We prove type preservation of our operational semantics, which guarantees that our programs are causal. We give also a proof of strong normalization which provides justification that our programs are productive and that they satisfy liveness properties derived from their types.},
+  booktitle = {Proceedings of the 41st ACM SIGPLAN-SIGACT Symposium on Principles of Programming Languages},
+  pages     = {361–372},
+  numpages  = {12},
+  keywords  = {functional reactive programming, temporal logic, liveness, propositions-as-types},
+  location  = {San Diego, California, USA},
+  series    = {POPL '14}
+}
+
+@misc{bahr2023asynchronous,
+  title         = {Asynchronous Modal FRP},
+  author        = {Patrick Bahr and Rasmus Ejlers Møgelberg},
+  year          = {2023},
+  eprint        = {2303.03170},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.PL}
+}
+
+@article{10.1145/2544174.2500588,
+  author     = {Krishnaswami, Neelakantan R.},
+  title      = {Higher-Order Functional Reactive Programming without Spacetime Leaks},
+  year       = {2013},
+  issue_date = {September 2013},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {48},
+  number     = {9},
+  issn       = {0362-1340},
+  url        = {https://doi.org/10.1145/2544174.2500588},
+  doi        = {10.1145/2544174.2500588},
+  abstract   = {Functional reactive programming (FRP) is an elegant approach to declaratively specify reactive systems. However, the powerful abstractions of FRP have historically made it difficult to predict and control the resource usage of programs written in this style.In this paper, we give a new language for higher-order reactive programming. Our language generalizes and simplifies prior type systems for reactive programming, by supporting the use of streams of streams, first-class functions, and higher-order operations. We also support many temporal operations beyond streams, such as terminatable streams, events, and even resumptions with first-class schedulers. Furthermore, our language supports an efficient implementation strategy permitting us to eagerly deallocate old values and statically rule out spacetime leaks, a notorious source of inefficiency in reactive programs. Furthermore, these memory guarantees are achieved without the use of a complex substructural type discipline.We also show that our implementation strategy of eager deallocation is safe, by showing the soundness of our type system with a novel step-indexed Kripke logical relation.},
+  journal    = {SIGPLAN Not.},
+  month      = {sep},
+  pages      = {221–232},
+  numpages   = {12},
+  keywords   = {guarded recursion, functional reactive programming, temporal logic, kripke logical relations, dataflow, comonads, capabilities}
+}
+
+@inproceedings{krishnaswami13,
+  author    = {Krishnaswami, Neelakantan R.},
+  title     = {Higher-Order Functional Reactive Programming without Spacetime Leaks},
+  year      = {2013},
+  isbn      = {9781450323260},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/2500365.2500588},
+  doi       = {10.1145/2500365.2500588},
+  abstract  = {Functional reactive programming (FRP) is an elegant approach to declaratively specify reactive systems. However, the powerful abstractions of FRP have historically made it difficult to predict and control the resource usage of programs written in this style.In this paper, we give a new language for higher-order reactive programming. Our language generalizes and simplifies prior type systems for reactive programming, by supporting the use of streams of streams, first-class functions, and higher-order operations. We also support many temporal operations beyond streams, such as terminatable streams, events, and even resumptions with first-class schedulers. Furthermore, our language supports an efficient implementation strategy permitting us to eagerly deallocate old values and statically rule out spacetime leaks, a notorious source of inefficiency in reactive programs. Furthermore, these memory guarantees are achieved without the use of a complex substructural type discipline.We also show that our implementation strategy of eager deallocation is safe, by showing the soundness of our type system with a novel step-indexed Kripke logical relation.},
+  booktitle = {Proceedings of the 18th ACM SIGPLAN International Conference on Functional Programming},
+  pages     = {221–232},
+  numpages  = {12},
+  keywords  = {functional reactive programming, kripke logical relations, comonads, dataflow, guarded recursion, capabilities, temporal logic},
+  location  = {Boston, Massachusetts, USA},
+  series    = {ICFP '13}
+}
+
+
+
+
+
+@book{blackheath2016functional,
+  title     = {Functional reactive programming},
+  author    = {Blackheath, Stephen},
+  year      = {2016},
+  publisher = {Simon and Schuster}
+}
+@article{bainomugisha2013survey,
+  title        = {A survey on reactive programming},
+  author       = {Bainomugisha, Engineer and Carreton, Andoni Lombide and Cutsem, Tom van and Mostinckx, Stijn and Meuter, Wolfgang de},
+  journal      = {ACM Computing Surveys (CSUR)},
+  volume       = {45},
+  number       = {4},
+  optpages     = {1--34},
+  year         = {2013},
+  optpublisher = {ACM}
+}
+@inproceedings{courtney2001frappe,
+  title        = {Frappé: Functional reactive programming in Java},
+  author       = {Courtney, Antony},
+  booktitle    = {International Symposium on Practical Aspects of Declarative Languages},
+  optpages     = {29--44},
+  year         = {2001},
+  organization = {Springer}
+}
+@inproceedings{cooper2006embedding,
+  title        = {Embedding dynamic dataflow in a call-by-value language},
+  author       = {Cooper, Gregory H and Krishnamurthi, Shriram},
+  booktitle    = {European symposium on programming (ESOP)},
+  optpages     = {294--308},
+  year         = {2006},
+  organization = {Springer}
+}
+@inproceedings{foster2011frenetic,
+  title        = {Frenetic: A network programming language},
+  author       = {Foster, Nate and Harrison, Rob and Freedman, Michael J and Monsanto, Christopher and Rexford, Jennifer and Story, Alec and Walker, David},
+  booktitle    = {16th ACM SIGPLAN International Conference on Functional Programming (ICFP)},
+  doi          = {10.1145/2034773.2034812},
+  numpages     = {13},
+  optpages     = {279--291},
+  year         = {2011},
+  optpublisher = {ACM}
+}
+@inproceedings{perez2016functional,
+  author       = {Perez, Ivan and Bärenz, Manuel and Nilsson, Henrik},
+  title        = {Functional Reactive Programming, Refactored},
+  year         = {2016},
+  optpublisher = {ACM},
+  doi          = {10.1145/2976002.2976010},
+  booktitle    = {9th ACM SIGPLAN International Symposium on Haskell},
+  optpages     = {33--44},
+  numpages     = {12}
+}
+
+% Process Calculi and Session Types
+@article{frumin22session,
+  author     = {Frumin, Dan and D’Osualdo, Emanuele and van den Heuvel, Bas and P\'{e}rez, Jorge A.},
+  title      = {A Bunch of Sessions: A Propositions-as-Sessions Interpretation of Bunched Implications in Channel-Based Concurrency},
+  year       = {2022},
+  issue_date = {October 2022},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {6},
+  number     = {OOPSLA2},
+  url        = {https://doi.org/10.1145/3563318},
+  doi        = {10.1145/3563318},
+  abstract   = {The emergence of propositions-as-sessions, a Curry-Howard correspondence between propositions of Linear Logic and session types for concurrent processes, has settled the logical foundations of message-passing concurrency. Central to this approach is the resource consumption paradigm heralded by Linear Logic. In this paper, we investigate a new point in the design space of session type systems for message-passing concurrent programs. We identify O’Hearn and Pym’s Logic of Bunched Implications (BI) as a fruitful basis for an interpretation of the logic as a concurrent programming language. This leads to a treatment of non-linear resources that is radically different from existing approaches based on Linear Logic. We introduce a new π-calculus with sessions, called πBI; its most salient feature is a construct called spawn, which expresses new forms of sharing that are induced by structural principles in BI. We illustrate the expressiveness of πBI and lay out its fundamental theory: type preservation, deadlock-freedom, and weak normalization results for well-typed processes; an operationally sound and complete typed encoding of an affine λ-calculus; and a non-interference result for access of resources.},
+  journal    = {Proc. ACM Program. Lang.},
+  month      = {oct},
+  articleno  = {155},
+  numpages   = {29},
+  keywords   = {session types, bunched implications, concurrency, Curry-Howard correspondence}
+}
+
+% Incremental Computation
+@phdthesis{acarThesis,
+  title  = {Self-Adjusting Computation},
+  school = {Carnegie Melon University},
+  author = {Acar, Umut},
+  year   = {2005}
+}
+
+
+% Early data stream management systems & query languages
+
+@article{Aurora,
+  author   = {Abadi, Daniel J and Don Carney and Uğur Çetintemel and Mitch Cherniack and Christian Convey and Sangdon Lee and Michael Stonebraker and Nesime Tatbul and Stan Zdonik},
+  title    = {{Aurora}: A New Model and Architecture for Data Stream Management},
+  journal  = {The VLDB Journal},
+  volume   = {12},
+  number   = {2},
+  optpages = {120--139},
+  year     = {2003},
+  doi      = {10.1007/s00778-003-0095-z}
+}
+
+@inproceedings{Borealis,
+  title     = {The Design of the {Borealis} Stream Processing Engine},
+  author    = {Abadi, Daniel J and Ahmad, Yanif and Balazinska, Magdalena and Çetintemel, Uğur and Cherniack, Mitch and Hwang, Jeong-Hyon and Lindner, Wolfgang and Maskey, Anurag and Rasin, Alex and Ryvkina, Esther and Nesime Tatbul and Ying Xing and Stanley Zdonik},
+  booktitle = {Second Biennial Conference on Innovative Data Systems Research (CIDR)},
+  optpages  = {277--289},
+  year      = {2005}
+}
+
+@inproceedings{babcock2002models,
+  title     = {Models and issues in data stream systems},
+  author    = {Babcock, Brian and Babu, Shivnath and Datar, Mayur and Motwani, Rajeev and Widom, Jennifer},
+  booktitle = {21st ACM SIGMOD-SIGACT-SIGART Symposium on Principles of Database Systems (PODS)},
+  optpages  = {1--16},
+  year      = {2002}
+}
+
+@inproceedings{TelegraphCQ,
+  title     = {{TelegraphCQ}: continuous dataflow processing},
+  author    = {Chandrasekaran, Sirish and Cooper, Owen and Deshpande, Amol and Franklin, Michael J and Hellerstein, Joseph M and Hong, Wei and Krishnamurthy, Sailesh and Madden, Samuel R and Reiss, Fred and Shah, Mehul A},
+  booktitle = {ACM SIGMOD International Conference on Management of Data (SIGMOD},
+  pages     = {668--668},
+  year      = {2003}
+}
+
+@inproceedings{CACQ,
+  author       = {Madden, Samuel and Shah, Mehul and Hellerstein, Joseph M and Raman, Vijayshankar},
+  title        = {Continuously Adaptive Continuous Queries over Streams},
+  booktitle    = {ACM SIGMOD International Conference on Management of Data (SIGMOD)},
+  year         = {2002},
+  optpages     = {49--60},
+  numpages     = {12},
+  optpublisher = {ACM},
+  doi          = {10.1145/564691.564698}
+}
+
+@techreport{STREAM2004,
+  title       = {{STREAM}: The {Stanford} Data Stream Management System},
+  author      = {Arasu, Arvind and Babcock, Brian and Babu, Shivnath and Cieslewicz, John and Datar, Mayur and Ito, Keith and Motwani, Rajeev and Srivastava, Utkarsh and Widom, Jennifer},
+  number      = {2004-20},
+  institution = {Stanford InfoLab},
+  year        = {2004}
+}
+
+@inproceedings{arasu2003cql,
+  title        = {{CQL}: A language for continuous queries over streams and relations},
+  author       = {Arasu, Arvind and Babu, Shivnath and Widom, Jennifer},
+  booktitle    = {International Workshop on Database Programming Languages},
+  optpages     = {1--19},
+  year         = {2003},
+  organization = {Springer}
+}
+
+@article{arasu2006cql,
+  title    = {The {CQL} Continuous Query Language: Semantic Foundations and Query Execution},
+  author   = {Arasu, Arvind and Babu, Shivnath and Widom, Jennifer},
+  journal  = {The VLDB Journal},
+  volume   = {15},
+  number   = {2},
+  optpages = {121--142},
+  year     = {2006},
+  doi      = {10.1007/s00778-004-0147-z}
+}
+
+% More recent work on stream query languages
+
+@article{jain2008towards,
+  title        = {Towards a streaming {SQL} standard},
+  author       = {Jain, Namit and Mishra, Shailendra and Srinivasan, Anand and Gehrke, Johannes and Widom, Jennifer and Balakrishnan, Hari and Çetintemel, Uğur and Cherniack, Mitch and Tibbetts, Richard and Zdonik, Stan},
+  journal      = {Proceedings of the VLDB Endowment},
+  volume       = {1},
+  number       = {2},
+  optpages     = {1379--1390},
+  year         = {2008},
+  optpublisher = {VLDB Endowment}
+}
+
+@inproceedings{begoli2019one,
+  title     = {One {SQL} to Rule Them All-an Efficient and Syntactically Idiomatic Approach to Management of Streams and Tables},
+  author    = {Begoli, Edmon and Akidau, Tyler and Hueske, Fabian and Hyde, Julian and Knight, Kathryn and Knowles, Kenneth},
+  booktitle = {International Conference on Management of Data (SIGMOD)},
+  optpages  = {1757--1772},
+  year      = {2019}
+}
+
+% Punctuation and heartbeats
+
+@article{punctuation2003,
+  title        = {Exploiting punctuation semantics in continuous data streams},
+  author       = {Tucker, Peter A and Maier, David and Sheard, Tim and Fegaras, Leonidas},
+  journal      = {IEEE Transactions on Knowledge and Data Engineering},
+  volume       = {15},
+  number       = {3},
+  optpages     = {555--568},
+  year         = {2003},
+  optpublisher = {IEEE}
+}
+
+@inproceedings{heartbeats2005,
+  title        = {A heartbeat mechanism and its application in {Gigascope}},
+  author       = {Johnson, Theodore and Muthukrishnan, Shanmugavelayutham and Shkapenyuk, Vladislav and Spatscheck, Oliver},
+  booktitle    = {31st International Conference on Very Large Data Bases (VLDB)},
+  optpages     = {1079--1088},
+  year         = {2005},
+  organization = {VLDB Endowment}
+}
+
+% Safety and determinism
+
+@article{stonebraker20058,
+  title        = {The 8 requirements of real-time stream processing},
+  author       = {Stonebraker, Michael and Çetintemel, Uğur and Zdonik, Stan},
+  journal      = {ACM SIGMOD Record},
+  volume       = {34},
+  number       = {4},
+  optpages     = {42--47},
+  year         = {2005},
+  optpublisher = {ACM}
+}
+
+@article{schneider2013safe,
+  title        = {Safe data parallelism for general streaming},
+  author       = {Schneider, Scott and Hirzel, Martin and Gedik, Buğra and Wu, Kun-Lung},
+  journal      = {IEEE Transactions on Computers},
+  volume       = {64},
+  number       = {2},
+  optpages     = {504--517},
+  year         = {2013},
+  optpublisher = {IEEE}
+}
+
+@article{hirzel2014catalog,
+  title        = {A catalog of stream processing optimizations},
+  author       = {Hirzel, Martin and Soulé, Robert and Schneider, Scott and Gedik, Buğra and Grimm, Robert},
+  journal      = {ACM Computing Surveys (CSUR)},
+  volume       = {46},
+  number       = {4},
+  optpages     = {1--34},
+  year         = {2014},
+  optpublisher = {ACM}
+}
+
+@inproceedings{xiao2014nondeterminism,
+  title     = {Nondeterminism in mapreduce considered harmful? an empirical study on non-commutative aggregators in mapreduce programs},
+  author    = {Xiao, Tian and Zhang, Jiaxing and Zhou, Hucheng and Guo, Zhenyu and McDirmid, Sean and Lin, Wei and Chen, Wenguang and Zhou, Lidong},
+  booktitle = {Companion Proceedings of the 36th International Conference on Software Engineering},
+  pages     = {44--53},
+  year      = {2014}
+}
+
+% MapReduce
+
+@article{dean2008mapreduce,
+  title     = {MapReduce: simplified data processing on large clusters},
+  author    = {Dean, Jeffrey and Ghemawat, Sanjay},
+  journal   = {Communications of the ACM},
+  volume    = {51},
+  number    = {1},
+  pages     = {107--113},
+  year      = {2008},
+  publisher = {ACM New York, NY, USA}
+}
+
+@inproceedings{condie2010mapreduce,
+  author       = {Tyson Condie and Neil Conway and Peter Alvaro and Joseph M Hellerstein and Khaled Elmeleegy and Russell Sears},
+  title        = {{MapReduce} Online},
+  booktitle    = {7th USENIX Symposium on Networked Systems Design and Implementation (NSDI)},
+  year         = {2010},
+  optpublisher = {USENIX Association}
+}
+
+% Difficulty of testing & user studies
+
+@article{fisher2012interactions,
+  title     = {Interactions with big data analytics},
+  author    = {Fisher, Danyel and DeLine, Rob and Czerwinski, Mary and Drucker, Steven},
+  journal   = {Interactions},
+  volume    = {19},
+  number    = {3},
+  optpages  = {50--59},
+  year      = {2012},
+  publisher = {ACM}
+}
+
+@misc{vianna2019exploratory,
+  title        = {An Exploratory Study of How Specialists Deal with Testing in Data Stream Processing Applications},
+  author       = {Vianna, Alexandre and Ferreira, Waldemar and Gama, Kiev},
+  howpublished = {arXiv preprint \url{https://arxiv.org/abs/1909.11069}},
+  year         = {2019},
+  note         = {(Accessed July 2022.)}
+}
+
+@inproceedings{gulzar2016bigdebug,
+  title        = {{BigDebug}: Debugging primitives for interactive big data processing in {S}park},
+  author       = {Gulzar, Muhammad Ali and Interlandi, Matteo and Yoo, Seunghyun and Tetali, Sai Deep and Condie, Tyson and Millstein, Todd and Kim, Miryung},
+  booktitle    = {38th International Conference on Software Engineering (ICSE)},
+  optpages     = {784--795},
+  year         = {2016},
+  organization = {IEEE/ACM}
+}
+
+% Modern DSPS systems and frameworks
+
+@misc{Flink,
+  author       = {Apache Software Foundation},
+  title        = {{Apache Flink}},
+  howpublished = {\url{https://flink.apache.org/}},
+  year         = {2019},
+  note         = {(Accessed July 2022.)}
+}
+
+@article{Flink2015,
+  title   = {{Apache Flink}: Stream and Batch Processing in a Single Engine},
+  author  = {Paris Carbone and Asterios Katsifodimos and Stephan Ewen and Volker Markl and Seif Haridi and Kostas Tzoumas},
+  journal = {Bulletin of the IEEE Computer Society Technical Committee on Data Engineering},
+  volume  = {36},
+  number  = {4},
+  year    = {2015}
+}
+
+@misc{Beam,
+  author       = {Apache Software Foundation},
+  title        = {{Apache Beam}},
+  howpublished = {\url{https://beam.apache.org/}},
+  year         = {2021},
+  note         = {(Accessed July 2022.)}
+}
+
+@misc{Timely,
+  author       = {Frank McSherry and others},
+  title        = {{Timely Dataflow} ({Rust} implementation)},
+  howpublished = {\url{https://github.com/TimelyDataflow/timely-dataflow/}},
+  year         = {2014},
+  note         = {(Accessed July 2022.)}
+}
+
+@inproceedings{Naiad2013,
+  author       = {Murray, Derek G and McSherry, Frank and Isaacs, Rebecca and Isard, Michael and Barham, Paul and Abadi, Martín},
+  title        = {{Naiad}: A Timely Dataflow System},
+  booktitle    = {24th Symposium on Operating Systems Principles (SOSP)},
+  year         = {2013},
+  optpages     = {439--455},
+  numpages     = {17},
+  organization = {ACM},
+  doi          = {10.1145/2517349.2522738}
+}
+
+@misc{SparkStreaming,
+  author       = {Apache Software Foundation},
+  zkey         = {Spark},
+  title        = {{Apache Spark Streaming}},
+  howpublished = {\url{https://spark.apache.org/streaming/}},
+  year         = {2019},
+  note         = {(Accessed July 2022.)}
+}
+
+@inproceedings{Spark2013,
+  author       = {Zaharia, Matei and Das, Tathagata and Li, Haoyuan and Hunter, Timothy and Shenker, Scott and Stoica, Ion},
+  title        = {Discretized Streams: Fault-tolerant Streaming Computation at Scale},
+  booktitle    = {24th Symposium on Operating Systems Principles (SOSP)},
+  year         = {2013},
+  optpages     = {423--438},
+  organization = {ACM},
+  doi          = {10.1145/2517349.2522737}
+}
+
+@misc{Samza,
+  author       = {Apache Software Foundation},
+  zkey         = {Samza},
+  title        = {{Apache Samza}},
+  howpublished = {\url{https://samza.apache.org/}},
+  year         = {2019},
+  note         = {(Accessed July 2022.)}
+}
+
+@article{Samza2017,
+  author       = {Noghabi, Shadi A and Paramasivam, Kartik and Pan, Yi and Ramesh, Navina and Bringhurst, Jon and Gupta, Indranil and Campbell, Roy H},
+  title        = {{Samza}: Stateful Scalable Stream Processing at {LinkedIn}},
+  journal      = {Proceedings of the VLDB Endowment},
+  volume       = {10},
+  number       = {12},
+  optpages     = {1634--1645},
+  year         = {2017},
+  optpublisher = {VLDB Endowment}
+}
+
+@inproceedings{kulkarni2015twitter-heron,
+  author    = {Kulkarni, Sanjeev and Bhagat, Nikunj and Fu, Maosong and Kedigehalli, Vikas and Kellogg, Christopher and Mittal, Sailesh and Patel, Jignesh M and Ramasamy, Karthik and Taneja, Siddarth},
+  title     = {{Twitter Heron}: Stream Processing at Scale},
+  booktitle = {ACM SIGMOD International Conference on Management of Data (SIGMOD)},
+  year      = {2015},
+  optpages  = {239--250},
+  doi       = {10.1145/2723372.2742788}
+}
+
+@misc{Storm,
+  author       = {Apache Software Foundation},
+  zkey         = {Storm},
+  title        = {{Apache Storm}},
+  howpublished = {\url{https://storm.apache.org/}},
+  year         = {2019},
+  note         = {(Accessed July 2022.)}
+}
+
+@misc{Heron,
+  author       = {Apache Software Foundation},
+  zkey         = {Heron},
+  title        = {{{Apache Heron} (originally {Twitter Heron})}},
+  howpublished = {\url{https://heron.incubator.apache.org/}},
+  year         = {2019},
+  note         = {(Accessed July 2022.)}
+}
+
+@inproceedings{gedik2008spade,
+  author    = {Gedik, Buğra and Andrade, Henrique and Wu, Kun-Lung and Yu, Philip S and Doo, Myungcheol},
+  title     = {{SPADE}: The {System S} Declarative Stream Processing Engine},
+  booktitle = {ACM SIGMOD International Conference on Management of Data (SIGMOD)},
+  optpages  = {1123--1134},
+  doi       = {10.1145/1376616.1376729},
+  year      = {2008}
+}
+
+@article{HAG2013SPL,
+  author       = {Hirzel, Martin and Andrade, Henrique and Gedik, Buğra and Jacques-Silva, Gabriela and Khandekar, Rohit and Kumar, Vibhore and Mendell, Mark and Nasgaard, Howard and Schneider, Scott and Soulé, Robert and Wu, Kun-Lung},
+  journal      = {IBM Journal of Research and Development},
+  title        = {{IBM} {S}treams {P}rocessing {L}anguage: Analyzing big data in motion},
+  year         = {2013},
+  volume       = {57},
+  number       = {3/4},
+  optpages     = {7:1-7:11},
+  optpublisher = {IBM}
+}
+
+% Universal calculi
+
+@inproceedings{soule2010universal,
+  title     = {A universal calculus for stream processing languages},
+  author    = {Soulé, Robert and Hirzel, Martin and Grimm, Robert and Gedik, Buğra and Andrade, Henrique and Kumar, Vibhore and Wu, Kun-Lung},
+  booktitle = {European Symposium on Programming (ESOP)},
+  optpages  = {507--528},
+  year      = {2010},
+  publisher = {Springer}
+}
+
+@article{dexter2022essence,
+  title     = {The essence of online data processing},
+  author    = {Dexter, Philip and Liu, Yu David and Chiu, Kenneth},
+  journal   = {Proceedings of the ACM on Programming Languages},
+  volume    = {6},
+  number    = {OOPSLA2},
+  pages     = {899--928},
+  year      = {2022},
+  publisher = {ACM New York, NY, USA}
+}
+
+% Rajeev streaming
+
+@inproceedings{mamouras2019data,
+  title     = {Data-trace types for distributed stream processing systems},
+  author    = {Mamouras, Konstantinos and Stanford, Caleb and Alur, Rajeev and Ives, Zachary G and Tannen, Val},
+  booktitle = {40th ACM SIGPLAN Conference on Programming Language Design and Implementation (PLDI)},
+  optpages  = {670--685},
+  year      = {2019}
+}
+ @inproceedings{synch-schemas,
+  title   = {Synchronization Schemas},
+  author  = {Alur, Rajeev and Hilliard, Phillip and Ives, Zachary G and Kallas, Konstantinos and Mamouras, Konstantinos and Niksic, Filip and Stanford, Caleb and Tannen, Val and Xue, Anton},
+  journal = {Invited contribution, Principles of Database Systems},
+  year    = {2021}
+}
+@article{kallas2020diffstream,
+  title        = {{DiffStream}: differential output testing for stream processing programs},
+  author       = {Kallas, Konstantinos and Niksic, Filip and Stanford, Caleb and Alur, Rajeev},
+  journal      = {Proceedings of the ACM on Programming Languages},
+  volume       = {4},
+  number       = {OOPSLA},
+  optpages     = {1--29},
+  year         = {2020},
+  optpublisher = {ACM}
+}
+
+@inproceedings{kallas2022flumina,
+  title     = {Stream Processing With Dependency-Guided Synchronization},
+  author    = {Kallas, Konstantinos and Niksic, Filip and Stanford, Caleb and Alur, Rajeev},
+  booktitle = {Principles and Practice of Parallel Programming (PPoPP)},
+  year      = {2022}
+}
+
+@phdthesis{stanford2022safe,
+  title  = {Safe Programming over Distributed Streams},
+  author = {Stanford, Caleb},
+  year   = {2022},
+  school = {University of Pennsylvania}
+}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%%%%%     THEORETICAL CONCEPTS     %%%%%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Pomsets
+
+@inproceedings{mazurkiewicz1986trace,
+  title        = {Trace theory},
+  author       = {Mazurkiewicz, Antoni},
+  booktitle    = {Advanced course on Petri nets},
+  optpages     = {278--324},
+  year         = {1986},
+  organization = {Springer}
+}
+
+@book{DiekertR1995,
+  author    = {Diekert, Volker and Rozenberg, Grzegorz},
+  doi       = {10.1142/2563},
+  publisher = {World Scientific},
+  title     = {{The Book of Traces}},
+  doi       = {10.1142/2563},
+  year      = {1995}
+}
+
+% (explored in work on partial order reduction:)
+@book{God96,
+  title     = {Partial-order methods for the verification of concurrent systems: an approach to the state-explosion problem},
+  author    = {Patrice Godefroid},
+  publisher = {Springer},
+  series    = {LNCS 1032},
+  year      = {1996}
+}
+@inproceedings{Peled94,
+  title        = {Combining partial order reductions with on-the-fly model-checking},
+  author       = {Peled, Doron},
+  booktitle    = {International Conference on Computer Aided Verification (CAV)},
+  optpages     = {377--390},
+  year         = {1994},
+  organization = {Springer}
+}
+
+
+@article{kappePomset,
+  abstract   = {Concurrent Kleene Algebra (CKA) is a formalism to study concurrent programs. Like previous Kleene Algebra extensions, developing a correspondence between denotational and operational perspectives is important, both for foundations and for applications. This paper takes an important step towards such a correspondence, by precisely relating bi-Kleene Algebra (BKA), a fragment of CKA, to a novel type of automata called pomset automata (PAs). We show that PAs can implement the BKA semantics of series-parallel rational expressions, and that a class of PAs can be translated back to these expressions. We also characterise the behaviour of general PAs in terms of context-free pomset grammars; consequently, universality, equivalence and series-parallel rationality of general PAs are undecidable.},
+  author     = {Tobias Kapp{\'e} and Paul Brunet and Bas Luttik and Alexandra Silva and Fabio Zanasi},
+  doi        = {https://doi.org/10.1016/j.jlamp.2018.12.001},
+  issn       = {2352-2208},
+  journal    = {Journal of Logical and Algebraic Methods in Programming},
+  keywords   = {Concurrency, Series-rational expressions, Kleene algebra, Pomset automata, Brzozowski derivatives, Kleene theorem},
+  pages      = {130-153},
+  title      = {On series-parallel pomset languages: Rationality, context-freeness and automata},
+  url        = {https://www.sciencedirect.com/science/article/pii/S2352220817302298},
+  volume     = {103},
+  year       = {2019},
+  bdsk-url-1 = {https://www.sciencedirect.com/science/article/pii/S2352220817302298},
+  bdsk-url-2 = {https://doi.org/10.1016/j.jlamp.2018.12.001}
+}
+
+
+@article{anderson2014netkat,
+  title     = {NetKAT: Semantic foundations for networks},
+  author    = {Anderson, Carolyn Jane and Foster, Nate and Guha, Arjun and Jeannin, Jean-Baptiste and Kozen, Dexter and Schlesinger, Cole and Walker, David},
+  journal   = {Acm sigplan notices},
+  volume    = {49},
+  number    = {1},
+  pages     = {113--126},
+  year      = {2014},
+  publisher = {ACM New York, NY, USA}
+}
+
+@inproceedings{wagemaker2022concurrent,
+  title        = {Concurrent NetKAT: Modeling and analyzing stateful, concurrent networks},
+  author       = {Wagemaker, Jana and Foster, Nate and Kapp{\'e}, Tobias and Kozen, Dexter and Rot, Jurriaan and Silva, Alexandra},
+  booktitle    = {European Symposium on Programming},
+  pages        = {575--602},
+  year         = {2022},
+  organization = {Springer International Publishing Cham}
+}
+
+% Derivatives
+
+@article{brzozowski1964derivatives,
+  title    = {Derivatives of regular expressions},
+  author   = {Brzozowski, Janusz A},
+  journal  = {Journal of the ACM},
+  volume   = {11},
+  number   = {4},
+  optpages = {481--494},
+  year     = {1964}
+}
+
+@article{antimirov1996partial,
+  title    = {Partial derivatives of regular expressions and finite automaton constructions},
+  author   = {Antimirov, Valentin},
+  journal  = {Theoretical Computer Science (TCS)},
+  volume   = {155},
+  number   = {2},
+  optpages = {291--319},
+  year     = {1996}
+}
+
+% Logarithms
+
+@article{logarithm,
+  author     = {Hou (Favonia), Kuen-Bang and Wang, Zhuyang},
+  title      = {Logarithm and Program Testing},
+  year       = {2022},
+  issue_date = {January 2022},
+  publisher  = {Association for Computing Machinery},
+  address    = {New York, NY, USA},
+  volume     = {6},
+  number     = {POPL},
+  url        = {https://doi.org/10.1145/3498726},
+  doi        = {10.1145/3498726},
+  abstract   = {Randomized property-based testing has gained much attention recently, but most frameworks stop short at polymorphic properties. Although Bernardy&nbsp;et&nbsp;al. have developed a theory to reduce a wide range of polymorphic properties to monomorphic ones, it relies upon ad-hoc embedding-projection pairs to massage the types into a particular form. This paper skips the embedding-projection pairs and presents a mechanical monomorphization for a general class of polymorphic functions, a step towards automatic testing for polymorphic properties. The calculation of suitable types for monomorphization turns out to be logarithm.},
+  journal    = {Proc. ACM Program. Lang.},
+  month      = {jan},
+  articleno  = {64},
+  numpages   = {26},
+  keywords   = {polymorphism, logarithm, parametricity}
+}
+
+% IO Method
+
+@article{cervesato00,
+  author     = {Cervesato, Iliano and Hodas, Joshua S. and Pfenning, Frank},
+  title      = {Efficient Resource Management for Linear Logic Proof Search},
+  year       = {2000},
+  issue_date = {Feb. 6, 2000},
+  publisher  = {Elsevier Science Publishers Ltd.},
+  address    = {GBR},
+  volume     = {232},
+  number     = {1–2},
+  issn       = {0304-3975},
+  url        = {https://doi.org/10.1016/S0304-3975(99)00173-5},
+  doi        = {10.1016/S0304-3975(99)00173-5},
+  journal    = {Theor. Comput. Sci.},
+  month      = {feb},
+  pages      = {133–163},
+  numpages   = {31},
+  keywords   = {linear logic, logic programming, theorem proving}
+}
+
+% BI
+
+@article{o1999logic,
+  title     = {The logic of bunched implications},
+  author    = {O'Hearn, Peter W and Pym, David J},
+  journal   = {Bulletin of Symbolic Logic},
+  volume    = {5},
+  number    = {2},
+  pages     = {215--244},
+  year      = {1999},
+  publisher = {Cambridge University Press}
+}
+
+@misc{hou2015labelled,
+  title         = {A Labelled Sequent Calculus for BBI: Proof Theory and Proof Search},
+  author        = {Zhe Hou and Alwen Tiu and Rajeev Gore},
+  year          = {2015},
+  eprint        = {1302.4783},
+  archiveprefix = {arXiv},
+  primaryclass  = {cs.LO}
+}
+
+@inproceedings{reynolds2002separation,
+  title        = {Separation logic: A logic for shared mutable data structures},
+  author       = {Reynolds, John C},
+  booktitle    = {Proceedings 17th Annual IEEE Symposium on Logic in Computer Science},
+  pages        = {55--74},
+  year         = {2002},
+  organization = {IEEE}
+}
+
+@inproceedings{frumin,
+  author    = {Frumin, Dan},
+  title     = {Semantic Cut Elimination for the Logic of Bunched Implications, Formalized in Coq},
+  year      = {2022},
+  isbn      = {9781450391825},
+  publisher = {Association for Computing Machinery},
+  address   = {New York, NY, USA},
+  url       = {https://doi.org/10.1145/3497775.3503690},
+  doi       = {10.1145/3497775.3503690},
+  abstract  = {The logic of bunched implications (BI) is a substructural logic that forms the backbone of separation logic, the much studied logic for reasoning about heap-manipulating programs. Although the proof theory and metatheory of BI are mathematically involved, the formalization of important metatheoretical results is still incipient. In this paper we present a self-contained formalized, in the Coq proof assistant, proof of a central metatheoretical property of BI: cut elimination for its sequent calculus. The presented proof is semantic, in the sense that is obtained by interpreting sequents in a particular “universal” model. This results in a more modular and elegant proof than a standard Gentzen-style cut elimination argument, which can be subtle and error-prone in manual proofs for BI. In particular, our semantic approach avoids unnecessary inversions on proof derivations, or the uses of cut reductions and the multi-cut rule. Besides modular, our approach is also robust: we demonstrate how our method scales, with minor modifications, to (i) an extension of BI with an arbitrary set of simple structural rules, and (ii) an extension with an S4-like □ modality.},
+  booktitle = {Proceedings of the 11th ACM SIGPLAN International Conference on Certified Programs and Proofs},
+  pages     = {291–306},
+  numpages  = {16},
+  keywords  = {bunched implications, Coq, cut elimination, interactive theorem proving, substructural logics},
+  location  = {Philadelphia, PA, USA},
+  series    = {CPP 2022}
+}
+
+@article{HosoyaVouillonPierce2000,
+  author  = {Haruo Hosoya and J\'er\^ome Vouillon and Benjamin C.
+             Pierce},
+  title   = {Regular Expression Types for {XML}},
+  journal = {ACM Transactions on Programming Languages and Systems
+             (TOPLAS)},
+  year    = {2005},
+  month   = jan,
+  volume  = 27,
+  number  = 1,
+  pages   = {46--90},
+  note    = {Preliminary version in ICFP 2000},
+  plclub  = yes,
+  bcp     = yes,
+  checked = yes,
+  keys    = {xduce},
+  conf    = {http://www.cis.upenn.edu/~bcpierce/papers/regsub.ps},
+  full    = {http://www.cis.upenn.edu/~bcpierce/papers/regsub-toplas.pdf}
+}
+
+@inproceedings{CDuce03,
+  author    = {V\'eronique Benzaken and Giuseppe Castagna and Alain Frisch},
+  title     = {{CDuce}: {A}n {XML}-Centric General-Purpose Language},
+  booktitle = {{ACM} {SIGPLAN} {I}nternational {C}onference on {F}unctional {P}rogramming
+               ({ICFP})},
+  isbn      = {1-58113-756-7},
+  pages     = {51--63},
+  year      = {2003}
+}
+
+@inproceedings{Castagna2002,
+  author    = {Alain Frisch and Giuseppe Castagna and Veronique Benzaken},
+  title     = {Semantic Subtyping},
+  booktitle = {Logic in Computer Science (LICS)},
+  year      = 2002
+}
+
+@inproceedings{hoare2009concurrent,
+  title        = {Concurrent {K}leene {A}lgebra},
+  author       = {Hoare, CAR (Tony) and M{\"o}ller, Bernhard and Struth, Georg and Wehrman, Ian},
+  booktitle    = {CONCUR 2009-Concurrency Theory: 20th International Conference, CONCUR 2009, Bologna, Italy, September 1-4, 2009. Proceedings 20},
+  pages        = {399--414},
+  year         = {2009},
+  organization = {Springer}
+}
+
+@inproceedings{pnueli1977LTL,
+  title        = {The temporal logic of programs},
+  author       = {Pnueli, Amir},
+  booktitle    = {18th Annual Symposium on Foundations of Computer Science (sfcs 1977)},
+  pages        = {46--57},
+  year         = {1977},
+  organization = {ieee}
+}
+
+@inproceedings{honda2008multiparty,
+  title     = {Multiparty asynchronous session types},
+  author    = {Honda, Kohei and Yoshida, Nobuko and Carbone, Marco},
+  booktitle = {Proceedings of the 35th annual ACM SIGPLAN-SIGACT symposium on Principles of programming languages},
+  pages     = {273--284},
+  year      = {2008}
+}
+
+
+@inproceedings{brotherston_cyclic_2005,
+  address   = {Berlin, Heidelberg},
+  series    = {Lecture {Notes} in {Computer} {Science}},
+  title     = {Cyclic {Proofs} for {First}-{Order} {Logic} with {Inductive} {Definitions}},
+  isbn      = {978-3-540-31822-4},
+  doi       = {10.1007/11554554_8},
+  abstract  = {We consider a cyclic approach to inductive reasoning in the setting of first-order logic with inductive definitions. We present a proof system for this language in which proofs are represented as finite, locally sound derivation trees with a “repeat function” identifying cyclic proof sections. Soundness is guaranteed by a well-foundedness condition formulated globally in terms of traces over the proof tree, following an idea due to Sprenger and Dam. However, in contrast to their work, our proof system does not require an extension of logical syntax by ordinal variables.},
+  language  = {en},
+  booktitle = {Automated {Reasoning} with {Analytic} {Tableaux} and {Related} {Methods}},
+  publisher = {Springer},
+  author    = {Brotherston, James},
+  editor    = {Beckert, Bernhard},
+  year      = {2005},
+  keywords  = {Induction Rule, Predicate Symbol, Proof System, Sequent Calculus, Trace Condition},
+  pages     = {78--92}
+}
+
+@inproceedings{fortier_cuts_2013,
+  address    = {Dagstuhl, Germany},
+  series     = {Leibniz {International} {Proceedings} in {Informatics} ({LIPIcs})},
+  title      = {Cuts for circular proofs: semantics and cut-elimination},
+  volume     = {23},
+  isbn       = {978-3-939897-60-6},
+  shorttitle = {Cuts for circular proofs},
+  url        = {http://drops.dagstuhl.de/opus/volltexte/2013/4201},
+  doi        = {10.4230/LIPIcs.CSL.2013.248},
+  urldate    = {2023-07-11},
+  booktitle  = {Computer {Science} {Logic} 2013 ({CSL} 2013)},
+  publisher  = {Schloss Dagstuhl–Leibniz-Zentrum fuer Informatik},
+  author     = {Fortier, Jérôme and Santocanale, Luigi},
+  editor     = {Rocca, Simona Ronchi Della},
+  year       = {2013},
+  note       = {ISSN: 1868-8969},
+  keywords   = {categorical proof-theory, fixpoints, inductive and coinductive types, initial and final (co)algebras},
+  pages      = {248--262},
+  file       = {Full Text PDF:/Users/harrison/Zotero/storage/L4PJZPWN/Fortier and Santocanale - 2013 - Cuts for circular proofs semantics and cut-elimin.pdf:application/pdf;Snapshot:/Users/harrison/Zotero/storage/JJV4N6HK/4201.html:text/html}
+}
+
+@phdthesis{derakhshan_session-typed_2021,
+  title    = {Session-{Typed} {Recursive} {Processes} and {Circular} {Proofs}},
+  url      = {https://www.andrew.cmu.edu/user/fderakhs/publications/Dissertation_Farzaneh.pdf},
+  language = {en},
+  school   = {Caregie Mellon University},
+  author   = {Derakhshan, Farzaneh},
+  month    = may,
+  year     = {2021},
+  file     = {Derakhshan - Session-Typed Recursive Processes and Circular Pro.pdf:/Users/harrison/Zotero/storage/NQLLRVWT/Derakhshan - Session-Typed Recursive Processes and Circular Pro.pdf:application/pdf}
+}
+
+@article{tuckerPunc,
+  author     = {Tucker, Peter A. and Maier, David and Sheard, Tim and Fegaras, Leonidas},
+  title      = {Exploiting Punctuation Semantics in Continuous Data Streams},
+  year       = {2003},
+  issue_date = {March 2003},
+  publisher  = {IEEE Educational Activities Department},
+  address    = {USA},
+  volume     = {15},
+  number     = {3},
+  issn       = {1041-4347},
+  url        = {https://doi-org.proxy.library.upenn.edu/10.1109/TKDE.2003.1198390},
+  doi        = {10.1109/TKDE.2003.1198390},
+  abstract   = {As most current query processing architectures are already pipelined, it seems logical to apply them to data streams. However, two classes of query operators are impractical for processing long or infinite data streams. Unbounded stateful operators maintain state with no upper bound in size and, so, run out of memory. Blocking operators read an entire input before emitting a single output and, so, might never produce a result. We believe that a priori knowledge of a data stream can permit the use of such operators in some cases. We discuss a kind of stream semantics called punctuated streams. Punctuations in a stream mark the end of substreams allowing us to view an infinite stream as a mixture of finite streams. We introduce three kinds of invariants to specify the proper behavior of operators in the presence of punctuation. Pass invariants define when results can be passed on. Keep invariants define what must be kept in local state to continue successful operation. Propagation invariants define when punctuation can be passed on. We report on our initial implementation and show a strategy for proving implementations of these invariants are faithful to their relational counterparts.},
+  journal    = {IEEE Trans. on Knowl. and Data Eng.},
+  month      = {mar},
+  pages      = {555–568},
+  numpages   = {14},
+  keywords   = {Continuous queries, continuous data streams, query operators, stream semantics, stream iterators.}
+}
