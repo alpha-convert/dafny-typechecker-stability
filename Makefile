@@ -19,10 +19,3 @@ clean:
 	rm -rf build
 	rm -rf TestResults/*
 	rm *.dll
-
-
-love:
-	...
-
-war:
-	...
