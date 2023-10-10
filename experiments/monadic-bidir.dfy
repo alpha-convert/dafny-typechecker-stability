@@ -8,26 +8,6 @@ import opened util
 import opened lang
 import opened evaluator
 
-
-function subty(t : Ty, t' : Ty) : bool {
-  match (t,t') {
-    case (IntTy,IntTy) => true
-    case (BoolTy,BoolTy) => true
-    case (RecordTy(m),RecordTy(m')) => forall k :: k in m' ==> k in m && subty(m[k],m'[k])
-    case _ => false
-  }
-}
-
-lemma subtyRefl(t : Ty)
-  ensures subty(t,t)
-{
-  match t {
-    case BoolTy =>
-    case IntTy =>
-    case RecordTy(m) =>
-  }
-}
-
 datatype TckErr = TckErr
 
 function infer(ctx : Ctx, e : Term) : Result<Ty,TckErr>

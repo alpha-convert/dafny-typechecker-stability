@@ -9,24 +9,6 @@ import opened lang
 import opened evaluator
 
 
-function subty(t : Ty, t' : Ty) : bool {
-  match (t,t') {
-    case (IntTy,IntTy) => true
-    case (BoolTy,BoolTy) => true
-    case (RecordTy(m),RecordTy(m')) => forall k :: k in m' ==> k in m && subty(m[k],m'[k])
-    case _ => false
-  }
-}
-
-lemma subtyRefl(t : Ty)
-  ensures subty(t,t)
-{
-  match t {
-    case BoolTy =>
-    case IntTy =>
-    case RecordTy(m) =>
-  }
-}
 
 datatype TckErr = TckErr
 
@@ -216,6 +198,7 @@ lemma addIsSafe(env : Env, e1 : Term, e2 : Term)
     assert eval(env,Add(e1,e2)).Ok?;
   } else {
     assert eval(env,Add(e1,e2)).Err?;
+    assert eval(env,Add(e1,e2)).error == DivByZeroErr;
   }
 }
 
@@ -229,6 +212,7 @@ lemma subIsSafe(env : Env, e1 : Term, e2 : Term)
     assert eval(env,Sub(e1,e2)).Ok?;
   } else {
     assert eval(env,Sub(e1,e2)).Err?;
+    assert eval(env,Sub(e1,e2)).error == DivByZeroErr;
   }
 }
 
@@ -242,6 +226,7 @@ lemma divIsSafe(env : Env, e1 : Term, e2 : Term)
     assert eval(env,Div(e1,e2)).Ok?;
   } else {
     assert eval(env,Div(e1,e2)).Err?;
+    assert eval(env,Div(e1,e2)).error == DivByZeroErr;
   }
 }
 
@@ -255,6 +240,7 @@ lemma andIsSafe(env : Env, e1 : Term, e2 : Term)
     assert eval(env,And(e1,e2)).Ok?;
   } else {
     assert eval(env,And(e1,e2)).Err?;
+    assert eval(env,And(e1,e2)).error == DivByZeroErr;
   }
 }
 
@@ -268,6 +254,7 @@ lemma orIsSafe(env : Env, e1 : Term, e2 : Term)
     assert eval(env,Or(e1,e2)).Ok?;
   } else {
     assert eval(env,Or(e1,e2)).Err?;
+    assert eval(env,Or(e1,e2)).error == DivByZeroErr;
   }
 }
 
