@@ -1,10 +1,12 @@
-% !TeX root = paper.tex
-% chktex-file 38
 
 \documentclass[sigplan,review,screen,anonymous]{acmart}
 \usepackage[utf8]{inputenc}
 
 \setcopyright{none}
+\definecolor{dkgreen}{HTML}{006329}
+\newcommand{\comm}[3]{\textcolor{#1}{[#2: #3]}}
+\newcommand{\jwc}[1]{\comm{dkgreen}{JWC}{#1}}
+
 
 % ===== Authors =====
 
@@ -41,9 +43,20 @@
 \renewcommand{\shortauthors}{Cutler et al.}
 
 % Draft title
-\title{Improving Verification Stability of Mechanized Metatheory}
+\title{Semantic Type Soundness in Dafny}
+\subtitle{With Applications to Verification Stability}
 
 \begin{abstract}
+  Mechanized metatheory developments undertaken in Dafny can run into proof
+  instability issues: the tendency of resource-intensive verifications to change
+  outcomes --- from ``verified'' to ``unable to verify'' --- seemingly at
+  random.  In this extended abstract, we present a systematic technique for
+  structuring type safety proofs in Dafny to improve proof stability. As a case
+  study, we apply the method to proving type safety for a small expression
+  language, and demonstrate empirically how it improves resource usage metrics
+  known to correlate with stability. Our method can scale to realistic proofs,
+  as demonstrated by its use in the type safety proof of the Cedar Policy
+  Language.
 \end{abstract}
 
 \keywords{}
@@ -51,10 +64,242 @@
 \begin{document}
 \maketitle
 
+\section{Introduction}
 
 \begin{itemize}
-    \item We
+    \item Explain the problem statement and setup:
+    \item \begin{itemize}
+      \item you've got a langauge, deeply embedded in dafny.
+      \item This means that you have some big-step semantics for the language, implemented by a definitional interpreter which returns either a value, or an error. (show generic)
+      \item You also have a typechecker, written in dafny: a boolean function which checks if a program has some type.  (show generic)
+      \item You want to show a soundness theorem, which states that well-typed programs are safe: either the program successfully evaluates to a value of the correct type, or it encounters one of some allowable class of errors. (show example, with examples of safety -- errors or no errors)
+    \end{itemize}
+
+    \item How do you do the proof?
+    \begin{itemize}
+      \item Proofs of type safety on paper are by induction on typing derivations
+      \item In dafny, this looks like pattern matching on the term, and making recursive calls for the IH. (show this scaffold)
+      \item These proofs grow linearly with the size of the language: more cases for more kinds of expressions.
+    \end{itemize}
+
+    \item It's important that this proof be \emph{stable}. 
+    \begin{itemize}
+      \item Unlike mechanized metatheory developments in tools backed by a type-theoretic proof checker, Dafny's SMT-backed verification
+      of statements in the undecidable fragment (like type safety) can be \emph{unstable}: the result of verifying the type safety theorem
+      can change, seemingly at random.
+
+      \item Proof instability is empirically known to correlate with both (a) proof resource usage, and (b) proof resource usage \emph{variance}.
+      Proofs which use a lot of resoruces are likely to be unstable, as are proofs which may vary greatly in their resource usage between runs.
+    \end{itemize}
+
+    \item The problem:
+    \begin{itemize}
+      \item Unfortunately, traditional-style direct proofs of type safety are very unstable in dafny, and do not scale to realistic-scale langauges.
+      \item (Color on the whack-a-mole issue) 
+    \end{itemize}
+
+    \item Contributions: 
+    \begin{itemize}
+      \item Demonstrate a technique for making mechanized metatheory proofs more stable (Section 2)
+      \item Evaluate the technique by comparing empirical metrics of proof stability against other methods of structuring the proof (Section 3).
+    \end{itemize}
+    
 \end{itemize}
+
+\section{Mechanized Semantic Type Soundness}
+\label{sec:sts}
+
+\jwc{Build into this better.}
+For a running example, let's consider the first-order expression language we'll
+use as our evaluation platform in Section~\ref{sec:eval}.  The language has
+types for integers, booleans, and records, all given as the Dafny type
+\texttt{Ty}.  For terms, we'll have variables (represented as strings, since the
+langauge has no binders), addition, subtraction, division, and, or,
+conditionals, and record expressions and projections. These are all represented
+by a Dafny ADT \texttt{Term}, which has a variant for each syntactic form.
+To illustrate how the language works, and how our technique applies, we'll focus
+down in this section to just the case of the addition operation.
+
+The language's semantics is implemented by a program which takes an environment \texttt{type
+Env = map<string,Val>} mapping variables to their values and a term, and returns
+either (a) the value the term evaluates to, or (b) an eval error, which can be a
+division by zero error or a runtime type error.
+
+\begin{verbatim}
+function eval(env : Env, e : Term) : Result<Val,EvalErr> {
+  match e {
+    ...
+    case Add(e1,e2) =>
+      var n1 :- evalInt(env,e1);
+      var n2 :- evalInt(env,e2);
+      Ok(IntVal(n1 + n2))
+  }
+}
+\end{verbatim}
+Here, \texttt{evalInt} is a helper that calls \texttt{eval}, and then pattern matches on the result,
+returning \texttt{n} if it was \texttt{IntVal(n)}, and throwing a runtime type error otherwise.
+
+Terms are typed in a context \texttt{type Ctx = map<string,Ty>} mapping variables to their types,
+with a typechecking implemented by a program 
+which either returns the type of a term in a context, or an error if no type can be given.
+\begin{verbatim}
+function infer(ctx : Ctx, e : Term) : Result<Ty,TckErr>{
+  match e {
+    ...
+    case Add(e1,e2) =>
+      var _ :- inferIntTy(ctx,e1);
+      var _ :- inferIntTy(ctx,e2);
+      Ok(IntTy)
+    }
+  }
+\end{verbatim}
+Where \texttt{inferIntTy} calls \texttt{infer}, and throws a type error if the result is anything but \texttt{IntTy}.
+
+
+For this language, type safety means the following. If \texttt{e} infers type \texttt{t} in context
+\texttt{ctx} and the environment
+\texttt{env} agrees with the context \texttt{ctx} --- every variable \texttt{x}
+in the domain of \texttt{ctx} has a mapping in \texttt{env}, and \texttt{env[x]} has type \texttt{ctx[x]} ---
+then \texttt{e} either evaluates under the environment \texttt{env} to a value of type \texttt{t}, or it results
+in a division by zero error (but not a runtime type error). Stated as a lemma in dafny:
+
+\begin{verbatim}
+lemma sound(env : Env, ctx : Ctx, e : term)
+  requires envHasCtx(env,ctx)
+  requires infer(ctx,e).Some?
+  ensures isSafe(env,e,infer(ctx,e).value)
+{...}
+\end{verbatim}
+
+Where \texttt{envHasCtx} is the predicate saying that the environment agrees with the context
+\begin{verbatim}
+predicate envHasCtx(env : Env, ctx : Ctx) {
+  forall x in ctx :: x in env && valHasType(env[x],ctx[x])
+}
+\end{verbatim}
+
+And \texttt{isSafe(env,e,t)} is a predicate that ensures
+\texttt{e} either evaluates to a value of type \texttt{t}
+or fails with a division by zero error.
+\begin{verbatim}
+predicate isSafe(env : Env, ctx : Ctx, t : Ty){
+  (eval(env,e).Ok? && valHasType(eval(env,e).value,t))
+  ||
+  (eval(env,e).Err? && eval(env,e).error == DivByZero)
+}
+\end{verbatim}
+
+Then to prove the \texttt{sound} lemma, we induct on the term \texttt{e}.
+
+The case of \texttt{sound} for \texttt{Add(e1,e2)} is simple, but illustrative.
+We simply make two recursive calls to the lemma to introduce the inductive hypotheses,
+and the solver takes care of the rest. 
+
+\begin{verbatim}
+lemma sound(env : Env, ctx : Ctx, e : term)
+  requires envHasCtx(env,ctx)
+  requires infer(ctx,e).Some?
+  ensures isSafe(env,e,infer(ctx,e).value)
+{
+  match e {
+    ...
+    case Add(e1,e2) =>
+      sound(env,ctx,e1);
+      sound(env,ctx,e2);
+  }
+}
+\end{verbatim}
+
+The reasoning that the solver takes care of under the hood is somewhat involved.
+Note that getting from the assumption \texttt{infer(ctx,And(e1,e2)).Some?} to
+the IH preconditions \texttt{infer(ctx,e1).Some?} and
+\texttt{infer(ctx,e2).Some?} requires reasoning about the code for
+\texttt{infer}, and getting fom the IH results \texttt{isSafe(env,e1,IntTy)} and
+\texttt{isSafe(env,e2,IntTy)} to the conclusion
+\texttt{isSafe(env,Add(e1,e2),IntTy)} requires reasoning through the possible
+combinations of how \texttt{e1} and \texttt{e2} might either evaluate to values or
+raise division-by-zero errors.
+
+\subsection*{Stability}
+\jwc{Fix sectionname}
+
+Unfortunately, as we'll see in Section~\ref{sec:eval}, this proof approach is
+not stable.  Anecdotally, we realized this while attemping to scale this style
+of proof up to a realistic language.  With enough operations and language
+features, the proof resource usages begin to vary wildly between runs,
+eventually leading to mysteriously failing proofs. At its core, we believe this
+instability arises from all of the ``unguided'' reasoning the solver has to do
+to get from the premise of the case to the premises of the IHs, and from the
+conclusions of the IHs to the conclusion of the case.
+
+A patchwork solution is to add guidance in the form of assertions around the
+recursive calls, to spell out the intermediate steps more directly.
+
+
+\begin{itemize}
+  \item Unfortunately, as we'll see in the evaluation section, this is very unstable --- proofs use wildly varying numbers of resources,
+  which indicate that a scaled-up version of this language would likely have instability issues.
+  \item How to fix?
+  \begin{itemize}
+    \item A great way to improve proof stability is to (a) specify the behavior of the functions about which you're proving stuff, and then (b) make things opaque, and do the proofs only through the specs.
+    \item This improves VS the solver is only provided with the facts we know it needs to complete the proof, and no others.
+        Moreover, if these sepcifications are written in the form of lemmas separate from the function's definition, we can control when and how
+        the different parts of the function's specification are revealed to the solver.
+  \end{itemize}
+  \item But what to make opaque, and how to specify it? We take inspiration from semantic type soundness \jwc{cite}, a way of thinking about type saftey pioneered by \jwc{cite}
+        and recently popularized by \jwc{cite}. \jwc{Make sure this is all real}
+      \begin{itemize}
+        \item First, we describe a safety predicate: when is a program safe at type t? This predicate is usually semantic in character: it runs to a value of that type, or something like that.
+        \item Then, the proof shows every well-typed program is safe.
+        \item The ``every well-typed program is safe'' theorem has a mechanical
+        structure. for every case, apply IHs. Then, we rely on facts about the
+        saftey property to go from the fact that the premises are safe to the
+        fact that the conclusion is safe.
+        \item This means that \emph{no matter what the saftey property is}, so long as the safety of all premises of every
+        typing rule implies the safety of the conclusion, all well-typed
+        programs are safe.
+        \item This tells us what to do: we can make the safety property itself
+        opaque, and prove the soundness using lemmas establishing that the
+        safety property interprets the typing rules.
+      \end{itemize}
+\end{itemize}
+
+
+
+% \begin{itemize}
+%     \item We present a systematic method for constructing mechanized type safety proofs
+%     in dafny, based on the concept of semantic type soundness \cite{}. 
+
+%     \item This is more modular: suppose you add division. Then you only add one inversion lemma, fix all the isSafe proofs, and the main theorem just goes through with no change.
+
+%     \item We demonstrate empirically that, compared to other direct methods of
+%     proof, our type proofs cost fewer Dafny resources on average, and have a smaller variance.
+% \end{itemize}
+
+
+\section{Evaluation}
+
+\label{sec:eval}
+
+
+
+This proof technique was developed and implemented for the type safety proof of the Cedar programming language.
+
+Clearly, the way to decrease resourse usage and variability is to axiomatize --- giving the solver fewer ways to click the lego bricks
+of proof together can only lead to better stuff but how?
+
+\subsection*{Direct Typechecker}
+
+\subsection*{Monadic Typechecker}
+
+\begin{itemize}
+  \item We just define helper functions and use the maybe monad bind.
+\end{itemize}
+
+\subsection*{Bidirectional Typechecker}
+
+\subsection*{Semantic Type Soundness}
+
 
 
 \bibliographystyle{ACM-Reference-Format}
