@@ -249,10 +249,10 @@ raise division-by-zero errors.
 \jwc{Fix sectionname}
 
 Unfortunately, as we'll see in Section~\ref{sec:eval}, this proof approach is
-not stable. Anecdotally, we realized this while attemping to scale this style
+not stable. We realized this while attemping to scale this style
 of proof up to a realistic language. With enough operations and language
-features, the proof resource usages begins to vary wildly between runs,
-eventually leading to mysteriously failing proofs. At its core, we believe this
+features, the proof resource usage varies wildly between runs,
+enough that the verification will fail at random. At its core, this
 instability arises from all of the afformentioned unguided reasoning the solver has to do about the
 code of the typechecker and evaluator,
 to get from the premise of the lemma to the premises of the IH, and then
@@ -408,48 +408,48 @@ This gives us the final recipe for our technique:
   \item Write the type soundness proof, inserting calls to the inversion lemmas before IH calls, and inserting calls to the compatibility lemma after.
 \end{enumerate}
 
-\jwc{This makes the type safety proof completely generic to the implementation
-of the typecheker and evaluator. You can chance the way they're implemented, add
-new cases, do any number of refactors. If you fixup the compatibility and
-iversion lemmas, you're good to go. As we'll see in the next section, it also
-makes the proofs vary way less.}
+
+% \jwc{This makes the type safety proof completely generic to the implementation
+% of the typecheker and evaluator. You can chance the way they're implemented, add
+% new cases, do any number of refactors. If you fixup the compatibility and
+% iversion lemmas, you're good to go. As we'll see in the next section, it also
+% makes the proofs vary way less.}
 
 
-
-
-% \begin{itemize}
-%     \item We present a systematic method for constructing mechanized type safety proofs
-%     in dafny, based on the concept of semantic type soundness \cite{}. 
-
-%     \item This is more modular: suppose you add division. Then you only add one inversion lemma, fix all the isSafe proofs, and the main theorem just goes through with no change.
-
-%     \item We demonstrate empirically that, compared to other direct methods of
-%     proof, our type proofs cost fewer Dafny resources on average, and have a smaller variance.
-% \end{itemize}
 
 
 \section{Evaluation}
 \label{sec:eval}
-
 In this section, we demonstrate empirically that our technique as described in Section~\ref{sec:sts}
-does yield more stable type soundness proofs.
+does yield more stable type soundness proofs. As a quantative proxy for stability, we will measure
+the resource usage of our proofs. If a proof is expensive, or its cost varies wildly
+between runs, this can be an indicator for future proof instability \jwc{Aaron Tomb, personal communication}.
+While resource usage is the most important indicator of future proof instability, we also
+base our conclusions on how much verification duration --- the wall-clock time it takes for the solver
+to prove the VCs --- varies between runs.
 
 \subsection*{Experimental Setup}
+We evaluate five different typecheckers and type soundness proofs for the same
+language to compare their proof stability. In all cases, the evaluator is exactly the same, a definitional
+interpreter as described in the previous section.
 
-The different typecheckers and type soundness proofs are:
+\jwc{Give these better names}
 
 \begin{itemize}
-  \item (Direct):
-  \item (Monadic):
+  \item (Monadic): This is the 
+  \item (Direct): 
   \item (Bidirectional):
   \item (Opaque-Safety):
   \item (Full):
 \end{itemize}
 
-We run the experiment by doing \texttt{dafny measure-complexity
---iterations:500 --log-format csv} on each file containing the respective
-typecheckers and type soundness proofs, and parse the CSV output into a python
-script which computes statistics and builds visualizations.
+We run the experiment by running the built-in \texttt{dafny measure-complexity}
+command on the files containing each type soundness proof, with the flags \texttt{--iterations:250 --log-format csv}.
+Each invocation of \texttt{measure-complexity} command verifies the file $250$ times, and dumps
+the verification results, durations, and resource usages to a CSV file. We then parse and analyze the CSV
+file with a python script, which computes the means and standard deviations of verification duration and resource usage for the solver's task of proving correctness
+of the VCs in the file's main soundness theorem.
+The experiments were run on a 2023 MacBook Pro with an Apple Silicon M2 processor, and 32GB memory, runnning Dafny v4.3.0, and z3 v4.12.1.
 
 \jwc{The thing we're measuring here is the cost of the single soundness theorem.}
 

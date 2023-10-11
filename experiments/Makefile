@@ -6,7 +6,7 @@ clean-test-results:
 restore-dafny:
 	dotnet tool restore
 
-NUM_ITERATIONS = 100
+NUM_ITERATIONS = 250
 
 MEASURE_COMPLEXITY_ARGS = --iterations:$(NUM_ITERATIONS) --log-format csv 
 
