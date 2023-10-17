@@ -73,7 +73,6 @@ developments, Dafny serves both as the host language in which the target
 language can be implemented, and a program verifier in which the mechanized
 proof can be completed.
 
-\jwc{Put the math on a different line: let it breathe. De-convolve the sentences.}
 The usual way that a target language semantics is implemented in Dafny
 is by way of a definitional interpreter \cite{definitional-interpreters}, a function \texttt{eval} which takes an
 an abstract syntax tree \texttt{e} which represents a term in the target language, and returns either an error,
@@ -105,7 +104,6 @@ cases.  This can make it hard to ensure that the proof is \emph{stable}.  Unlike
 mechanized metatheory developments in tools backed by a type-theoretic proof
 checker, Dafny's SMT-backed verification can be \emph{unstable}: the result of
 verifying the type soundness theorem can change, from verified to unverified, seemingly at random. 
-% \jwc{Jump up and down more about this! The solver may fail, sporadically, without warning. this is catastrophic}
 Unfortunately, folowing the proof structure described above leads to very unstable proofs in Dafny. Anecdotally, we have
 found it impossible to scale this kind of proof to anything approximating a realistic language without encountering enormous
 proof instability barriers.
@@ -412,15 +410,6 @@ This gives us the final recipe for our technique:
 \end{enumerate}
 
 
-% \jwc{This makes the type safety proof completely generic to the implementation
-% of the typecheker and evaluator. You can chance the way they're implemented, add
-% new cases, do any number of refactors. If you fixup the compatibility and
-% iversion lemmas, you're good to go. As we'll see in the next section, it also
-% makes the proofs vary way less.}
-
-
-
-
 \section{Evaluation}
 \label{sec:eval}
 In this section, we demonstrate empirically that our technique as described in Section~\ref{sec:sts}
@@ -435,28 +424,27 @@ to prove the VCs --- varies between runs.
 We evaluate five different typecheckers and type soundness proofs for the same
 language to compare their proof stability.  The code for these typecheckers, proofs, and the language's evaluator, can be found in
 the supplementary materials. The five different typecheckers, as well as the contents of the rest of the files, are described below.
-\jwc{Give these better names}
 
 \begin{itemize}
   \item (\texttt{lang.dfy}): The langauge and type definitions, common to all typecheckers and the evaluator.
   \item (\texttt{eval.dfy}): Contains the evaluator for our expressiong language. All of the type soundness proofs are relative to this evaluator.
-  \item (\texttt{monadic.dfy}): This is the typechecker and type safety proof described in
+  \item (\texttt{basic.dfy}): This is the typechecker and type safety proof described in
   the first part of Section~\ref{sec:sts}.  The typechecker uses one main method
   \texttt{infer} and some helper functions to infer a type for a term, and then checks
   that it's equal to the given type.
-  \item (\texttt{direct}): This is the same as the typechecker in \texttt{monadic.dfy}, with all of the
+  \item (\texttt{unfolded.dfy}): This is the same as the typechecker in \texttt{basic.dfy}, with all of the
   syntactic sugar for \texttt{Result}-binds (\texttt{:-}) unfolded, and all of the helper
   functions inlined. We include this file to measure the degree to which adding
-  layers of abstraction hurts proof stability. The proof is essentially the same as the one in \texttt{monadic.dfy}.
-  \item (\texttt{bidirectional.dfy}): This typechecker is written in the same style as the typechecker in \texttt{monadic.dfy}. The typing relation that it impelents is slightly different,
+  layers of abstraction hurts proof stability. The proof is essentially the same as the one in \texttt{basic.dfy}.
+  \item (\texttt{bidirectional.dfy}): This typechecker is written in the same style as the typechecker in \texttt{basic.dfy}. The typing relation that it impelents is slightly different,
         however, including a subtyping rule which implements record width and depth subtyping.
         The type soundness proof changes to include calls to reflexivity and transitivity lemmas about subtyping, which cannot be inferred by the solver.
-  \item (\texttt{semantic.dfy}):
+  \item (\texttt{opaque-safe.dfy}):
         This file implements the first half of our technique, making the safety
         property opaque, proving compatability lemmas about the evaluator, and
         calling them in the soundness proof.  The typechecker is identical to
         the one in \texttt{bidirectional.dfy}.
-  \item (\texttt{semantic-invert.dfy}): This file implements the full stabilizing technique, adding
+  \item (\texttt{opaque-safe-invert.dfy}): This file implements the full stabilizing technique, adding
   \item (\texttt{std.dfy} and \texttt{util.dfy}): Auxiliary functions and definitions not specific to the language's evaluator or typechecker.
 \end{itemize}
 
@@ -471,13 +459,13 @@ The experiments were run on a 2023 MacBook Pro with an Apple Silicon M2 processo
 \subsection*{Results}
 The graph in Figure~\ref{fig:cost-results} shows the mean verification \emph{resource usage} (and standard deviation, with whiskers), over the 250 verifications of each soundness theorem,
 while the graph in Figure~\ref{fig:dur-results} shows verification \emph{durations}, in miliseconds. The two graphs tell essentially the same story.
-The highest cost and highest variance proof in all cases is the soundness proof for the typechecker in \texttt{monadic.dfy}. It strikes an unforuntate balance of being complicated code --- heavy use of monadic bind and lots of helper functions --- with little guidance in the proof.
-The typechecker in \texttt{direct.dfy} is slightly cheaper to verify than the one in \texttt{monadic.dfy}, but it still has enormous variance. The cost seems to be lower because of all of the inlined definitions,
+The highest cost and highest variance proof in all cases is the soundness proof for the typechecker in \texttt{basic.dfy}. It strikes an unforuntate balance of being complicated code --- heavy use of monadic bind and lots of helper functions --- with little guidance in the proof.
+The typechecker in \texttt{unfolded.dfy} is slightly cheaper to verify than the one in \texttt{basic.dfy}, but it still has enormous variance. The cost seems to be lower because of all of the inlined definitions,
 meaning that the verifier must reason about fewer functions while proving soundness.
 The proof for the typechecker in \texttt{bidirectional.dfy} is cheaper and has lower variance than either of the previous two. This may be because while the bidirectionality increases the complexity of the typechecking algorithm,
 this complexity \emph{requires} further guidance to the verifier for it to accept the proof at all, thereby improving stability on the whole.
 As expected, the two proofs using the first and second halves of our technique
-are by far the best. The soundness theorem using the fully specified typechecker and safety property (\texttt{semantic-invert.dfy})
+are by far the best. The soundness theorem using the fully specified typechecker and safety property (\texttt{opaque-safe-invert.dfy})
 is the best of all, with negligable variance in resource usage between runs of the verifier.
 
 \begin{figure}
