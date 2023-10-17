@@ -1,0 +1,273 @@
+\RequirePackage{listings}
+\RequirePackage{xcolor}
+\RequirePackage{fvextra}
+
+
+\colorlet{DFYgreen}{green!40!black}
+\colorlet{DFYviolet}{violet}
+\colorlet{DFYblue}{blue!50!black}
+\colorlet{DFYorange}{orange!70!black}
+\colorlet{DFYred}{red!50!black}
+\colorlet{DFYgray}{black!70!white}
+\colorlet{DFYteal}{teal!80!black}
+
+
+\RequirePackage{xstring}
+\RequirePackage{pgffor}
+\RequirePackage{xparse}
+\RequirePackage{etoolbox}
+\RequirePackage{expl3}
+
+%C
+\colorlet{DFYLcommentColor}{DFYgreen}
+\colorlet{DFYLnumberColor}{blue}
+\colorlet{DFYLKWColor}{DFYblue}
+\colorlet{DFYLKW2Color}{DFYgreen}
+\colorlet{DFYLstringColor}{DFYred}
+\colorlet{DFYLoperatorColor}{DFYred}
+\colorlet{DFYLmiscKWColor}{DFYteal}
+\colorlet{DFYLcheckerColor}{DFYteal}
+%
+\makeatletter
+
+
+% Patch line number key to call line background macro
+\lst@Key{numbers}{none}{%
+	\def\lst@PlaceNumber{\lst@linebgrd}%
+	\lstKV@SwitchCases{#1}%
+	{none:\\%
+		left:\def\lst@PlaceNumber{\llap{\normalfont
+				\lst@numberstyle{\thelstnumber}\kern\lst@numbersep}\lst@linebgrd}\\%
+		right:\def\lst@PlaceNumber{\rlap{\normalfont
+				\kern\linewidth \kern\lst@numbersep
+				\lst@numberstyle{\thelstnumber}}\lst@linebgrd}%
+	}{\PackageError{Listings}{Numbers #1 unknown}\@ehc}}
+
+% New keys
+\lst@Key{linebackgroundcolor}{}{%
+	\def\lst@linebgrdcolor{#1}%
+}
+\lst@Key{linebackgroundsep}{0pt}{%
+	\def\lst@linebgrdsep{#1}%
+}
+\lst@Key{linebackgroundwidth}{\linewidth}{%
+	\def\lst@linebgrdwidth{#1}%
+}
+\lst@Key{linebackgroundheight}{\ht\strutbox}{%
+	\def\lst@linebgrdheight{#1}%
+}
+\lst@Key{linebackgrounddepth}{\dp\strutbox}{%
+	\def\lst@linebgrddepth{#1}%
+}
+\lst@Key{linebackgroundcmd}{\color@block}{%
+	\def\lst@linebgrdcmd{#1}%
+}
+
+% Line Background macro
+\newcommand{\lst@linebgrd}{%
+	\ifx\lst@linebgrdcolor\empty\else
+	\rlap{%
+		\lst@basicstyle
+		\color{-.}% By default use the opposite (`-`) of the current color (`.`) as background
+		\lst@linebgrdcolor{%
+			\kern-\dimexpr\lst@linebgrdsep\relax%
+			\lst@linebgrdcmd{\lst@linebgrdwidth}{\lst@linebgrdheight}{\lst@linebgrddepth}%
+		}%
+	}%
+	\fi
+}
+
+\newcommand\storefirst{}
+\newcommand\btLstHL[1]{\renewcommand\storefirst{#1}\btLstHLi}
+
+\newcommand{\btLstHLi}[1][\storefirst]{%
+	\ifnum\value{lstnumber}<\storefirst%
+	\else%
+	\ifnum\value{lstnumber}>#1%
+	\else%
+	\color{HLColor}%
+	\fi%
+	\fi%
+}%
+
+\lst@Key{DFYLnumberstyle}{}{\def\lst@DFYLnumberstyle{#1}}
+\lst@Key{formatidstyle}{}{\def\lst@formatidstyle{#1}}
+\lst@Key{checkerstyle}{}{\def\lst@checkerstyle{#1}}
+
+\lst@Key{operators}{}{%
+	\let\lst@operators\@empty
+	\lst@for{#1}\do{%
+		\lst@MakeActive{##1}%
+		\lst@lExtend\lst@operators{%
+			\expandafter\lst@CArg\lst@temp\relax\lst@CDef
+			{}\lst@PrintOperator\@empty}}}
+\lst@AddToHook{SelectCharTable}{\lst@operators}
+
+\gdef\lst@PrintOperator#1\@empty{%
+	\lst@XPrintToken
+	\begingroup
+	\lst@modetrue \lsthk@TextStyle
+	\let\lst@ProcessDigit\lst@ProcessLetter
+	\let\lst@ProcessOther\lst@ProcessLetter
+	\lst@lettertrue
+	#1%
+	\lst@SaveToken
+	\endgroup
+	\lst@RestoreToken
+	\global\let\lst@savedcurrstyle\lst@currstyle
+	\ifnum\lst@mode=\the\lst@Pmode
+	\let\lst@currstyle\lst@gkeywords@sty
+	\fi
+	\lst@Output
+	\let\lst@currstyle\lst@savedcurrstyle}
+
+
+
+
+% ``state variables''
+\newif\ifinstring
+\def\instringtrue{\global\let\ifinstring\iftrue}
+\def\instringfalse{\global\let\ifinstring\iffalse}
+\newif\ifinidentifier
+\def\inidentifiertrue{\global\let\ifinidentifier\iftrue}
+\def\inidentifierfalse{\global\let\ifinidentifier\iffalse}
+\newif\ifinbrace
+\def\inbracetrue{\global\let\ifinbrace\iftrue}
+\def\inbracefalse{\global\let\ifinbrace\iffalse}
+\newif\ifincomment
+\def\incommenttrue{\global\let\ifincomment\iftrue}
+\def\incommentfalse{\global\let\ifincomment\iffalse}
+\newif\ifintick
+\def\inticktrue{\global\let\ifintick\iftrue}
+\def\intickfalse{\global\let\ifintick\iffalse}
+\newif\ifDFYLparsenumbers
+\lst@AddToHook{Output}{\@DFYLlcaddedToOutput}
+\lst@AddToHook{EndGroup}{\inbracefalse\instringfalse\incommentfalse\intickfalse}
+\lst@AddToHook{AfterBeginComment}{\incommenttrue}
+% local variables
+\newif\ifidentifierStartsByDigit@
+\newif\ifidentifierStartsByPercent@
+\newif\ifidentifierStartsByColumn@
+\newif\ifidentifierStartsByColumn@
+\def\splitfirstchar#1{\@splitfirstchar#1\@nil}
+\def\@splitfirstchar#1#2\@nil{\gdef\@testChar{#1}}
+\def\@testChar%
+{%
+	\ifDFYLparsenumbers
+	% copy the first token in \the\lst@token to \@testChar
+	\expandafter\splitfirstchar\expandafter{\the\lst@token}%
+	\ifidentifierStartsByPercent@%
+	\ifinstring%
+	\def\lst@thestyle{\lst@formatidstyle}%
+	\fi%
+	\fi%
+	%checker stuff
+	\ifinbrace%
+	\ifinstring%
+	\def\lst@thestyle{\lst@stringstyle}%
+	\else%
+%	\ifidentifierStartsByColumn@%
+	\def\lst@thestyle{\lst@checkerstyle}%
+%	\else%
+%	\fi%
+	\fi%
+	\else%
+	\fi	%	
+	% reset switch
+	\identifierStartsByDigit@false%
+	\identifierStartsByPercent@false%
+	\identifierStartsByColumn@false%
+	% equality test
+	\IfInteger{\@testChar}{\identifierStartsByDigit@true}{}%
+	\IfStrEq{\@testChar}{\%}{\identifierStartsByPercent@true}{}%
+	\IfStrEq{\@testChar}{:}{\identifierStartsByColumn@true}{}%
+	% processing the tests
+	% numbers processing
+	\ifidentifierStartsByDigit@%
+	\ifnum\lst@mode=\the\lst@Pmode%
+	\let\lst@thestyle=\lst@DFYLnumberstyle%
+	\fi
+	\fi
+	% format string identifiers
+	\ifidentifierStartsByPercent@%
+	\ifinstring
+	\def\lst@thestyle{\lst@formatidstyle}%
+	\else
+	\identifierStartsByPercent@false%
+	\fi
+	\fi
+	\fi
+}
+\let\@DFYLlcaddedToOutput\@testChar
+
+
+\makeatother
+
+
+\lstdefinelanguage
+{Dafny}
+{
+	alsoletter={0123456789?_'},
+	showstringspaces = false,
+	morestring = [s][\instringtrue\color{DFYLstringColor}]{"}{"},
+	moredelim = *[s][\inbracetrue]{\{:}{\}},
+	morecomment=[s]{/*}{*/},
+	morecomment=[l]//,
+	operators={&,|,:,=,+,!,-,>,<,\%},
+	morekeywords=[0]{bool, char, int, int32, int64 iset, map, multiset, 
+		nat, null, real, seq, set,
+		string, Ref, usize, String,
+		array, array1, array2, array3, array4, %arrayToken up to 4
+		},
+	morekeywords = [1]{++,+=,&&,!=,>=,<=,=,+,||,\%},
+	morekeywords=[2]{abstract , as , assert , assume , break ,
+		calc , case , class , codatatype , colemma ,
+		constructor , copredicate , datatype , decreases ,
+		default , else , ensures , exists , extends , false ,
+		forall , free , fresh , function , ghost , if , imap , import ,
+		in , include , inductive , invariant , iterator , label ,
+		lemma , match , method , modifies , modify ,
+		module , new , newtype , object ,
+		old , opened , predicate , print , protected ,
+		reads , refines , requires , return , returns , 
+		static , then , this , trait , true , type ,
+		var , where , while , yield , yields, opaque, reveal,
+	    export, provides, reveals, by, for},  %additional keywords
+    	%list taken from dafny reference manual, moved types to KW0
+    morekeywords=[3]{Exception, U, Result, List, T, Box, 
+    Option, RefL, MRef, MRefL,ArrayList,  
+    int32, A, Iterator}, %types specific to this paper
+    morekeywords = [4]{'l},
+    keywordstyle=[3]\bfseries\color{DFYLKWColor},
+	keywordstyle=[0]\bfseries\color{DFYLKWColor},
+	keywordstyle=[2]\bfseries\color{DFYLKW2Color},
+	commentstyle=\color{DFYLcommentColor},
+	DFYLnumberstyle=\color{DFYLnumberColor},
+	stringstyle=\color{DFYLstringColor},
+	formatidstyle=\color{DFYLnumberColor},
+	checkerstyle=\color{DFYLcheckerColor},
+	keywordstyle=[1]\color{DFYLoperatorColor},
+	keywordstyle=[4]\color{DFYLstringColor},
+}
+
+\lstnewenvironment{dafny}[1][]{
+	\lstset{ %
+		basicstyle=\ttfamily,
+		breakatwhitespace=true,
+		breaklines=true,
+		extendedchars=true,
+		keepspaces=true,
+		showspaces=false,
+		showstringspaces=false,
+		showtabs=false,
+		tabsize=2,
+		language=Dafny,
+		#1
+	}\DFYLparsenumberstrue
+}{\DFYLparsenumbersfalse}
+
+\lstdefinestyle{dafnyS}
+{
+	language=Dafny,columns=fixed,
+	basicstyle={\ttfamily},
+}
