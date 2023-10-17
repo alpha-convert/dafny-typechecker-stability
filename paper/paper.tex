@@ -64,58 +64,62 @@
 \maketitle
 
 \section{Introduction}
+Type soundness proofs for strongly-typed programming languages are often carried
+out in type-theory based proof assistants like Coq or Agda. However, recent
+small-scale experiements \cite{mayer-blog-post} and large-scale mechanized
+metatheory developments \cite{cedar-proofs}.  have shown that Dafny is capable
+enough as a proof assistant to encode type soundness proofs. In these
+developments, Dafny serves both as the host language in which the target
+language can be implemented, and a program verifier in which the mechanized
+proof can be completed.
 
-\begin{itemize}
-    \item Explain the problem statement and setup:
-    \item \begin{itemize}
-      \item you've got a langauge, deeply embedded in dafny.
-      \item This means that you have some big-step semantics for the language, implemented by a definitional interpreter which returns either a value, or an error. (show generic)
-      \item You also have a typechecker, written in dafny: a boolean function which checks if a program has some type.  (show generic)
-            This ideally implements some particular type system (presented declaratively, with rules). This usually works where there's one rule for each syntactic form, adn so the function pattern matches on the syntax, and makes recursive calls to check or infer the types of the premises.
-      \item You want to show a soundness theorem, which states that well-typed programs are safe: either the program successfully evaluates to a value of the correct type, or it encounters one of some allowable class of errors. (show example, with examples of safety -- errors or no errors)
-    \end{itemize}
+The usual way that a target language semantics is implemented in Dafny
+is by way of a definitional interpreter \cite{definitional-interpreters}, a function \texttt{eval} which takes an
+an abstract syntax tree \texttt{e} which represents a term in the target language, and returns either an error,
+or the value \texttt{v} the term evaluates to. In principle, this implements some abstract semantics defined
+by inference rules on paper: a semantic judgment $\texttt{e} \downarrow \texttt{v}$ holds if and only if \texttt{eval(e) = Ok(v)}.
 
-    \item How do you do the proof?
-    \begin{itemize}
-      \item Proofs of type soundness on paper are by induction on typing derivations
-      \item In dafny, this looks like pattern matching on the term, and making recursive calls for the IH. (show this scaffold)
-      \item These proofs grow linearly with the size of the language: more cases for more kinds of expressions.
-    \end{itemize}
+The other half of a language implementation is a typechecker: a boolean function \texttt{check} which again takes a term \texttt{e}
+and a type \texttt{t}, and returns true or false if \texttt{e} has type \texttt{t}. Again, this implements some abstract typing
+judgment $\vdash \texttt{e} : \texttt{t}$, which is defined by way of inference rules on paper. 
 
-    \item It's important that this proof be \emph{stable}. 
-    \begin{itemize}
-      \item Unlike mechanized metatheory developments in tools backed by a type-theoretic proof checker, Dafny's SMT-backed verification
-      can be \emph{unstable}: the result of verifying the type soundness theorem
-      can change, seemingly at random.
+The goal of a type soundness proof is then to demonstrate that well-typed
+programs do not go wrong: if $\vdash \texttt{e} : \texttt{t}$, then $\texttt{e}
+\downarrow \texttt{v}$ for some value \texttt{v} of type \texttt{t}. When proven
+on paper, this proof proceeds by an induction on the typing derivation of
+$\vdash \texttt{e} : \texttt{t}$. For each rule defining the typing judgment, we
+prove that if the premises do not go wrong, then the conclusion also does not go
+wrong. Meanwhile, a \emph{mechanized} proof of this fact in Dafny takes the form
+of a lemma which requires \texttt{check(e,t)}, and ensures that \texttt{eval(e)
+= Ok(v)} and that \texttt{v} has type \texttt{t}. The proof of this lemma
+necessarily looks like a pattern-match on the term \texttt{e}, making recursive
+calls on the subterms to establish the inductive hyoptheses. For syntax-directed type systems
+of the sort we will consider in this extended abstract\footnote{Strictly speaking, this is not a restriction of our tehcnique. The only practical way to implement a non-syntax-directed type system is to build a syntax-directed version, prove the two versions equivalent, and then implement the syntax-directed one.},
+the structure of these two kinds of proofs are the same: each case of the pattern match encodes the proof for the corresponding typing rule for the corresponding syntactic form.
 
-      \item Proof instability is empirically known to correlate with both (a) proof resource usage, and (b) proof resource usage \emph{variance}.
-      Proofs which use a lot of resoruces are likely to be unstable, as are proofs which may vary greatly in their resource usage between runs.
-    \end{itemize}
+As such, the size of a type soundness proof in Dafny grows linearly with the
+size of the language; more language features and more expressions mean more
+cases.  This can make it hard to ensure that the proof is \emph{stable}.  Unlike
+mechanized metatheory developments in tools backed by a type-theoretic proof
+checker, Dafny's SMT-backed verification can be \emph{unstable}: the result of
+verifying the type soundness theorem can change, seemingly at random.
+Unfortunately, followign the proof structure described above leads to very unstable proofs in Dafny. Anecdotally, we have
+found it impossible to scale this kind of proof to anything approximating a realistic language without encountering enormous
+proof instability barriers.
 
-    \item The problem:
-    \begin{itemize}
-      \item Unfortunately, traditional direct-style proofs of type soundness are very unstable in dafny, and do not scale to realistic-scale langauges.
-      \item (Color on the whack-a-mole issue) 
-    \end{itemize}
+In this extended abstract, we propose a new proof structure for mechanized type soundness proofs in Dafny which ensures proof stability.
+By giving partial specifications of the evaluator and type checker, and proving type soundness relative to those specifications, we
+can eliminate much of the \jwc{words}
+Our technique has been used to verify \jwc{word}
 
-    \item Contributions: 
-    \begin{itemize}
-      \item Demonstrate a technique for making mechanized metatheory proofs more stable (Section~\ref{sec:sts}) by axiomatizing \jwc{word} the evaluator and type checker.
-      \item Evaluate the technique by comparing empirical metrics of proof stability against other methods of structuring the proof (Section~\ref{sec:eval}).
-    \end{itemize}
+In Section~\ref{sec:sts}, we present the technique by walking through a traditional-style proof of type soundness in Dafny.
+Then in Section~\ref{sec:eval}, we evaluate the technique comparing empirical metrics of proof stability against other methods of structuring type soundness proofs, and other ways of writing a typechecker.
+Lastly, in Section~\ref{sec:discussion}, we discuss how our technique has been deployed in practice, speculate about how it can be applied to even more complex languages,
+and discuss the limitations and drawbacks.
 
-    \item In Section~\ref{sec:discussion}, we'll discuss details of how the technique might apply in different situations, as well as how it was developed and deployed to build the type soundness proof for the cedar language.
-
-    \jwc{Mention that this is used in Cedar, and cite the open-source development}
-
-    \jwc{Make sure to namecheck the blog post}
-    
-\end{itemize}
 
 \section{Stable Type Soundness Proofs}
 \label{sec:sts}
-
-\jwc{Build into this better.}
 For a running example, let's consider the first-order expression language we
 use for our evaluation in Section~\ref{sec:eval}.  The language has
 types for integers, booleans, and records, all given as the Dafny type
@@ -241,8 +245,6 @@ ways \texttt{Add(e1,e2)} evaluates when \texttt{e1} and \texttt{e2} might either
 raise division-by-zero errors.
 
 \subsection*{Finding Stability}
-\jwc{Fix sectionname}
-
 Unfortunately, as we'll see in Section~\ref{sec:eval}, this proof approach is
 not stable. We realized this while attemping to scale this style
 of proof up to a realistic language. With enough operations and language
@@ -418,7 +420,7 @@ This gives us the final recipe for our technique:
 In this section, we demonstrate empirically that our technique as described in Section~\ref{sec:sts}
 does yield more stable type soundness proofs. As a quantative proxy for stability, we will measure
 the resource usage of our proofs. If a proof is expensive, or its cost varies wildly
-between runs, this can be an indicator for future proof instability \jwc{Aaron Tomb, personal communication}.
+between runs, this can be an indicator for future proof instability \cite{stabilize},\cite{tomb}
 While resource usage is the most important indicator of future proof instability, we also
 base our conclusions on how much verification duration --- the wall-clock time it takes for the solver
 to prove the VCs --- varies between runs.
@@ -463,7 +465,6 @@ The experiments were run on a 2023 MacBook Pro with an Apple Silicon M2 processo
 \subsection*{Results}
 The graph in Figure~\ref{fig:cost-results} shows the mean verification \emph{resource usage} (and standard deviation, with whiskers), over the 250 verifications of each soundness theorem,
 while the graph in Figure~\ref{fig:dur-results} shows verification \emph{durations}, in miliseconds. The two graphs tell essentially the same story.
-\jwc{Re-Run the experiments!}
 The highest cost and highest variance proof in all cases is the soundness proof for the typechecker in \texttt{monadic.dfy}. It strikes an unforuntate balance of being complicated code --- heavy use of monadic bind and lots of helper functions --- with little guidance in the proof.
 The typechecker in \texttt{direct.dfy} is slightly cheaper to verify than the one in \texttt{monadic.dfy}, but it still has enormous variance. The cost seems to be lower because of all of the inlined definitions,
 meaning that the verifier must reason about fewer functions while proving soundness.
@@ -486,15 +487,16 @@ is the best of all, with negligable variance in resource usage between runs of t
 \end{figure}
 
 \section{Discussion}
+\label{sec:discussion}
 
 \subsubsection*{Scaling It Up}
 A version of this proof technique was developed for the purposes of mechanizing the proof of type soundness
-of the Cedar Language \jwc{cite} \footnote{https://github.com/cedar-policy/cedar-spec/tree/main/cedar-dafny},
+of the Cedar Language \cite{cedar}
 the language underlying the Amazon Verified Permissions offering \footnote{https://aws.amazon.com/verified-permissions/}.
 The technique described in this abstract is currently used in the type soundness proof of the reference typechecker with respect to the reference interpreter.
 In Cedar, programs express access control policies, and the evaluator outputs an authorization decision: permit or deny.
-Cedar's type system is a great deal more complex than that of our toy langauge, and includes a number of advanced type system features like ocurrence typing \jwc{cite: The Design and Implementation of Typed Scheme} and
-singleton types \cite{https://dl.acm.org/doi/10.5555/645867.670933}.
+Cedar's type system is a great deal more complex than that of our toy langauge, and includes a number of advanced type system features like ocurrence typing \cite{typed-scheme} and
+singleton types \cite{sing-types}.
 
 Semantically though, Cedar is not \emph{all} that much more complex to model than the
 toy language we evaluate for this extended abstract. Like our toy language,
