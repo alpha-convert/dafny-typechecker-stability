@@ -8,6 +8,8 @@
 \newcommand{\comm}[3]{\textcolor{#1}{[#2: #3]}}
 \newcommand{\jwc}[1]{\comm{dkgreen}{JWC}{#1}}
 
+\include{dafnylst}
+
 
 % ===== Authors =====
 
@@ -47,10 +49,7 @@
 \title{Improving the Stability of Type Soundness Proofs in Dafny}
 
 \begin{abstract}
-  Mechanized metatheory developments undertaken in Dafny can run into proof
-  instability issues: the tendency of resource-intensive verifications to change
-  outcomes --- from ``verified'' to ``unable to verify'' --- seemingly at
-  random.  In this extended abstract, we present a systematic technique for
+  In this extended abstract, we present a systematic technique for
   structuring type soundness proofs in Dafny to improve proof stability. As a case
   study, we apply the method to proving type soundness for a small expression
   language, and demonstrate empirically how it improves resource usage metrics
@@ -72,6 +71,7 @@
       \item you've got a langauge, deeply embedded in dafny.
       \item This means that you have some big-step semantics for the language, implemented by a definitional interpreter which returns either a value, or an error. (show generic)
       \item You also have a typechecker, written in dafny: a boolean function which checks if a program has some type.  (show generic)
+            This ideally implements some particular type system (presented declaratively, with rules). This usually works where there's one rule for each syntactic form, adn so the function pattern matches on the syntax, and makes recursive calls to check or infer the types of the premises.
       \item You want to show a soundness theorem, which states that well-typed programs are safe: either the program successfully evaluates to a value of the correct type, or it encounters one of some allowable class of errors. (show example, with examples of safety -- errors or no errors)
     \end{itemize}
 
@@ -85,7 +85,7 @@
     \item It's important that this proof be \emph{stable}. 
     \begin{itemize}
       \item Unlike mechanized metatheory developments in tools backed by a type-theoretic proof checker, Dafny's SMT-backed verification
-      of statements in the undecidable fragment (like type soundness) can be \emph{unstable}: the result of verifying the type soundness theorem
+      can be \emph{unstable}: the result of verifying the type soundness theorem
       can change, seemingly at random.
 
       \item Proof instability is empirically known to correlate with both (a) proof resource usage, and (b) proof resource usage \emph{variance}.
@@ -94,15 +94,17 @@
 
     \item The problem:
     \begin{itemize}
-      \item Unfortunately, traditional-style direct proofs of type soundness are very unstable in dafny, and do not scale to realistic-scale langauges.
+      \item Unfortunately, traditional direct-style proofs of type soundness are very unstable in dafny, and do not scale to realistic-scale langauges.
       \item (Color on the whack-a-mole issue) 
     \end{itemize}
 
     \item Contributions: 
     \begin{itemize}
-      \item Demonstrate a technique for making mechanized metatheory proofs more stable (Section 2) by axiomatizing \jwc{word} the evaluator and type checker.
-      \item Evaluate the technique by comparing empirical metrics of proof stability against other methods of structuring the proof (Section 3).
+      \item Demonstrate a technique for making mechanized metatheory proofs more stable (Section~\ref{sec:sts}) by axiomatizing \jwc{word} the evaluator and type checker.
+      \item Evaluate the technique by comparing empirical metrics of proof stability against other methods of structuring the proof (Section~\ref{sec:eval}).
     \end{itemize}
+
+    \item In Section~\ref{sec:discussion}, we'll discuss details of how the technique might apply in different situations, as well as how it was developed and deployed to build the type soundness proof for the cedar language.
 
     \jwc{Mention that this is used in Cedar, and cite the open-source development}
 
@@ -110,21 +112,19 @@
     
 \end{itemize}
 
-\section{Our Technique}
+\section{Stable Type Soundness Proofs}
 \label{sec:sts}
 
-\jwc{Needs a way better section title}
-
 \jwc{Build into this better.}
-For a running example, let's consider the first-order expression language we'll
-use as our evaluation platform in Section~\ref{sec:eval}.  The language has
+For a running example, let's consider the first-order expression language we
+use for our evaluation in Section~\ref{sec:eval}.  The language has
 types for integers, booleans, and records, all given as the Dafny type
-\texttt{Ty}.  For terms, we'll have variables (represented as strings, since the
+\texttt{Ty}.  For terms, we have variables (represented as strings, since the
 langauge has no binders), addition, subtraction, division, and, or,
 conditionals, and record expressions and projections. These are all represented
 by a Dafny ADT \texttt{Term}, which has a variant for each syntactic form.
-To demonstrate how the language works, and how our technique applies, we'll focus
-down in this section to just the behavior of the addition operation.
+To demonstrate how the language works, and how our technique applies, we focus
+on just the behavior of the addition operation.
 
 The language's semantics is implemented by a program \texttt{eval(env,e)} which takes an environment \texttt{type
 Env = map<string,Val>} mapping variables to their values and a term, and returns
@@ -136,7 +136,7 @@ The function \texttt{evalInt} is a helper that calls \texttt{eval}, and then pat
 returning \texttt{n} if it was \texttt{IntVal(n)}, and throwing a runtime type error otherwise.
 
 \begin{figure}
-  \begin{verbatim}
+\begin{dafny}
 function eval(env : Env, e : Term) : Result<Val,EvErr>
 {
   match e {
@@ -147,26 +147,26 @@ function eval(env : Env, e : Term) : Result<Val,EvErr>
       Ok(IntVal(n1 + n2))
   }
 }
-  \end{verbatim}
+  \end{dafny}
   \caption{The \texttt{eval} function, with the case for \texttt{Add}}
   \label{fig:eval}
 \end{figure}
 
 
 Terms are typed in a context \texttt{type Ctx = map<string,Ty>} mapping variables to their types,
-with a typechecking implemented by a program \texttt{check(ctx,e,t)} which calls an inference function \texttt{infer}, and then checks if the restult is equal to \texttt{t}.
+with a typechecking implemented by a program \texttt{check(ctx,e,t)} which calls an inference function \texttt{infer}, and then checks if the result is equal to \texttt{t}.
 Code for \texttt{check} and the \texttt{Add} case for \texttt{infer} are shown in Figure~\ref{fig:infer}, where
 \texttt{inferIntTy} calls \texttt{infer}, and throws a type error if the result
 is anything but \texttt{IntTy}.
 
 \begin{figure}
-\begin{verbatim}
-function check(ctx : Ctx, e : Term, t : Ty) : Result<(),TckErr>{
+\begin{dafny}
+function check(ctx : Ctx, e : Term, t : Ty) : Result<(),TckErr> {
   var t' :- infer(ctx,e);
   if t == t' then Ok(()) else Err(TckErr)
 }
 
-function infer(ctx : Ctx, e : Term) : Result<Ty,TckErr>{
+function infer(ctx : Ctx, e : Term) : Result<Ty,TckErr> {
   match e {
     ...
     case Add(e1,e2) =>
@@ -175,7 +175,7 @@ function infer(ctx : Ctx, e : Term) : Result<Ty,TckErr>{
       Ok(IntTy)
     }
   }
-\end{verbatim}
+\end{dafny}
 \caption{The \texttt{check} and \texttt{infer} functions, with the case for \texttt{Add}}
 \label{fig:eval}
 \end{figure}
@@ -186,8 +186,7 @@ function infer(ctx : Ctx, e : Term) : Result<Ty,TckErr>{
 
 For this language, type soundness means the following. If \texttt{e} checks against \texttt{t} in context
 \texttt{ctx} and the environment
-\texttt{env} agrees with the context \texttt{ctx} --- every variable \texttt{x}
-in the domain of \texttt{ctx} has a mapping in \texttt{env}, and \texttt{env[x]} has type \texttt{ctx[x]} ---
+\texttt{env} agrees with the context \texttt{ctx},
 then \texttt{e} either evaluates under the environment \texttt{env} to a value of type \texttt{t}, or it results
 in a division by zero error (but not a runtime type error). 
 This lemma is encoded in dafny as the \texttt{sound} lemma in Figure~\ref{fig:sound},
@@ -195,44 +194,40 @@ along with auxiliary definitions: \texttt{envHasCtx} is the predicate saying tha
 and \texttt{isSafe(env,e,t)} encodes the conclusion of the theorem.
 
 \begin{figure}
-  \begin{verbatim}
-  lemma sound(env : Env, ctx : Ctx, e : term, t : Ty)
-    requires envHasCtx(env,ctx)
-    requires check(ctx,e,t).Some?
-    ensures isSafe(env,e,t)
-  {
-    match e {
-      ...
-      case Add(e1,e2) =>
-        sound(env,ctx,e1,IntTy);
-        sound(env,ctx,e2,IntTy);
-    }
+\begin{dafny}
+lemma sound(env : Env, ctx : Ctx, e : term, t : Ty)
+  requires envHasCtx(env,ctx)
+  requires check(ctx,e,t).Some?
+  ensures isSafe(env,e,t)
+{
+  match e {
+    ...
+    case Add(e1,e2) =>
+      sound(env,ctx,e1,IntTy);
+      sound(env,ctx,e2,IntTy);
   }
-  \end{verbatim}
+}
 
-  \begin{verbatim}
-  predicate envHasCtx(env : Env, ctx : Ctx) {
-    forall x :: x in ctx ==>
-      x in env &&
-      valHasType(env[x],ctx[x])
-  }
-  \end{verbatim}
+predicate envHasCtx(env : Env, ctx : Ctx) {
+  forall x :: x in ctx ==>
+    x in env &&
+    valHasType(env[x],ctx[x])
+}
 
-  \begin{verbatim}
-  predicate isSafe(env : Env, ctx : Ctx, t : Ty){
-    (eval(env,e).Ok? && valHasType(eval(env,e).value,t))
-    ||
-    (eval(env,e).Err? && eval(env,e).error == DivByZero)
-  }
-  \end{verbatim}
+predicate isSafe(env : Env, e  : Term, t : Ty){
+  (eval(env,e).Ok? && valHasType(eval(env,e).value,t))
+  ||
+  (eval(env,e).Err? && eval(env,e).error == DivByZero)
+}
+\end{dafny}
 
   \caption{The \texttt{sound} lemma with the case for \texttt{Add}, and auxiliary definitions}
 \end{figure}
 
 
-Then to prove the \texttt{sound} lemma, we induct on the term \texttt{e}.
-The case of \texttt{sound} for \texttt{Add(e1,e2)} is simple, but illustrative.
-We simply make two recursive calls to the lemma to introduce the inductive hypotheses,
+To prove the \texttt{sound} lemma, we induct on the term \texttt{e}.
+The case of \texttt{sound} for \texttt{Add(e1,e2)} is illustrative.
+We make two recursive calls to the lemma to introduce the inductive hypotheses,
 and the solver takes care of the rest. 
 
 The reasoning that the solver takes care of under the hood is somewhat involved.
@@ -281,13 +276,13 @@ together imply \texttt{isSafe(env,Add(e1,e2),IntTy)}.
 
 
 \begin{figure}
-  \begin{verbatim}
-  lemma addIsSafe(env : Env, e1 : Expr, e2 : Expr)
-    requires isSafe(env,e1,IntTy)
-    requires isSafe(env,e2,IntTy)
-    ensures isSafe(env,Add(e1,e2),IntTy)
-  {reveal isSafe(); ...}
-  \end{verbatim}
+\begin{dafny}
+lemma addIsSafe(env : Env, e1 : Expr, e2 : Expr)
+  requires isSafe(env,e1,IntTy)
+  requires isSafe(env,e2,IntTy)
+  ensures isSafe(env,Add(e1,e2),IntTy)
+{reveal isSafe(); ...}
+\end{dafny}
   \caption{Add Compatibility Lemma}
   \label{fig:add-is-safe}
 \end{figure}
@@ -299,7 +294,7 @@ predicate opaque, the \texttt{Add} case of the soundess theorem goes through
 with only minor modification, adding a call to \texttt{addIsSafe} after the uses
 of IH.
 
-\begin{verbatim}
+\begin{dafny}
 lemma sound(env : Env, ctx : Ctx, e : term, t : Ty)
   requires envHasCtx(env,ctx)
   requires check(ctx,e,t).Some?
@@ -313,7 +308,7 @@ lemma sound(env : Env, ctx : Ctx, e : term, t : Ty)
       addIsSafe(env,e1,e2);
   }
 }
-\end{verbatim}
+\end{dafny}
 
 One way of thinking about the \texttt{addIsSafe} lemma is that it says that the
 safety predicate \emph{interprets the typing rule} for addition. By by replacing
@@ -365,14 +360,14 @@ the type \texttt{t} in question must have been \texttt{IntTy}.
 
 
 \begin{figure}
-  \begin{verbatim}
-    lemma invertAddCheck(ctx : Ctx, e1 : Term, e2 : Term)
-    requires invert(ctx,Add(e1,e2),t).Ok?
-    ensures check(ctx,e1,IntTy).Ok?
-    ensures check(ctx,e2,IntTy).Ok?
-    ensures t == IntTy
+\begin{dafny}
+  lemma invertAddCheck(ctx : Ctx, e1 : Term, e2 : Term)
+  requires invert(ctx,Add(e1,e2),t).Ok?
+  ensures check(ctx,e1,IntTy).Ok?
+  ensures check(ctx,e2,IntTy).Ok?
+  ensures t == IntTy
 { reveal infer(); reveal check(); }
-  \end{verbatim}
+\end{dafny}
 
   \caption{Inversion Lemma for Addition}
   \label{fig:add-invert}
@@ -381,7 +376,7 @@ the type \texttt{t} in question must have been \texttt{IntTy}.
 This then allows us to make the \texttt{check} and \texttt{infer} functions opaque, and modify
 the proof of the soundness theorem once more to add a call to this inversion lemma before the calls to IH.
 
-\begin{verbatim}
+\begin{dafny}
 lemma sound(env : Env, ctx : Ctx, e : term, t : Ty)
   requires envHasCtx(env,ctx)
   requires check(ctx,e,t).Some?
@@ -396,7 +391,7 @@ lemma sound(env : Env, ctx : Ctx, e : term, t : Ty)
       addIsSafe(env,e1,e2);
   }
 }
-\end{verbatim}
+\end{dafny}
 
 This gives us the final recipe for our technique:
 
@@ -430,17 +425,31 @@ to prove the VCs --- varies between runs.
 
 \subsection*{Experimental Setup}
 We evaluate five different typecheckers and type soundness proofs for the same
-language to compare their proof stability. In all cases, the evaluator is exactly the same, a definitional
-interpreter as described in the previous section.
-
+language to compare their proof stability.  The code for these typecheckers, proofs, and the language's evaluator, can be found in
+the supplementary materials. The five different typecheckers, as well as the contents of the rest of the files, are described below.
 \jwc{Give these better names}
 
 \begin{itemize}
-  \item (Monadic): This is the 
-  \item (Direct): 
-  \item (Bidirectional):
-  \item (Opaque-Safety):
-  \item (Full):
+  \item (\texttt{lang.dfy}): The langauge and type definitions, common to all typecheckers and the evaluator.
+  \item (\texttt{eval.dfy}): Contains the evaluator for our expressiong language. All of the type soundness proofs are relative to this evaluator.
+  \item (\texttt{monadic.dfy}): This is the typechecker and type safety proof described in
+  the first part of Section~\ref{sec:sts}.  The typechecker uses one main method
+  \texttt{infer} and some helper functions to infer a type for a term, and then checks
+  that it's equal to the given type. \jwc{Go back and make this true, in the code}
+  \item (\texttt{direct}): This is the same as the typechecker in \texttt{monadic.dfy}, with all of the
+  syntactic sugar for \texttt{Result}-binds (\texttt{:-}) unfolded, and all of the helper
+  functions inlined. We include this file to measure the degree to which adding
+  layers of abstraction hurts proof stability. The proof is essentially the same as the one in \texttt{monadic.dfy}.
+  \item (\texttt{bidirectional.dfy}): This typechecker is written in the same style as the typechecker in \texttt{monadic.dfy}. The typing relation that it impelents is slightly different,
+        however, including a subtyping rule which implements record width and depth subtyping.
+        The type soundness proof changes to include calls to reflexivity and transitivity lemmas about subtyping, which cannot be inferred by the solver.
+  \item (\texttt{semantic.dfy} \jwc{fix}):
+        This file implements the first half of our technique, making the safety
+        property opaque, proving compatability lemmas about the evaluator, and
+        calling them in the soundness proof.  The typechecker is identical to
+        the one in \texttt{bidirectional.dfy}.
+  \item (\texttt{semantic-invert.dfy}): This file implements the full stabilizing technique, adding
+  \item (\texttt{std.dfy} and \texttt{util.dfy}): Auxiliary functions and definitions not specific to the language's evaluator or typechecker.
 \end{itemize}
 
 We run the experiment by running the built-in \texttt{dafny measure-complexity}
@@ -451,41 +460,66 @@ file with a python script, which computes the means and standard deviations of v
 of the VCs in the file's main soundness theorem.
 The experiments were run on a 2023 MacBook Pro with an Apple Silicon M2 processor, and 32GB memory, runnning Dafny v4.3.0, and z3 v4.12.1.
 
-\jwc{The thing we're measuring here is the cost of the single soundness theorem.}
+\subsection*{Results}
+The graph in Figure~\ref{fig:results} shows the mean verification \emph{resource usage} (and standard deviation, with whiskers), over the 250 verifications of each soundness theorem.
 
-\subsection*{Results and Discussion}
+% \begin{itemize}
+%   \item We look at the mean verification \emph{duration} and \emph{resource usage}
+%         over 250 verifications --- lower is better in both cases, meaning that the proof takes less time and is less costly on average.
+%   \item Of greater interest is the \emph{variance} of duration and resource usage. A proof which vareis wildly in its verification duration or resource usage
+%         is often a precursor to a proof whose outcome varies. \jwc{Cite Aaron Tomb, personal communication} This is shown with whiskers (standard deviations)
+% \end{itemize}
 
-\begin{itemize}
-  \item We look at the mean verification \emph{duration} and \emph{resource usage}
-        over 250 verifications --- lower is better in both cases, meaning that the proof takes less time and is less costly on average.
-  \item Of greater interest is the \emph{variance} of duration and resource usage. A proof which vareis wildly in its verification duration or resource usage
-        is often a precursor to a proof whose outcome varies. \jwc{Cite Aaron Tomb, personal communication} This is shown with whiskers (standard deviations)
-\end{itemize}
-
+\begin{figure}
+  \includegraphics{costgraph.png}
+  \caption{Verification Resource Usages}
+\end{figure}
 \jwc{Graph 1}
 
-\jwc{Graph 2}
+The highest cost and highest variance proof in all cases is the soundness proof for the typechecker in \texttt{monadic.dfy}. It strikes an unforuntate balance of being complicated code --- heavy use of monadic bind and lots of helper functions --- with little guidance in the proof.
+The typechecker in \texttt{direct.dfy} is slightly cheaper to verify than the one in \texttt{monadic.dfy}, but it still has enormous variance. The cost seems to be lower because of all of the inlined definitions,
+meaning that the verifier must reason about fewer functions while proving soundness.
+The proof for the typechecker in \texttt{bidirectional.dfy} is cheaper and has lower variance than either of the previous two. This may be because while the bidirectionality increases the complexity of the typechecking algorithm,
+this complexity \emph{requires} further guidance to the verifier for it to accept the proof at all, thereby improving stability on the whole.
+As expected, the two proofs using the first and second halves of our technique
+are by far the best. The soundness theorem using the fully specified typechecker and safety property (\texttt{semantic-invert.dfy})
+is the best of all, with negligable variance in resource usage between runs of the verifier.
 
-\begin{itemize}
-  \item The highest cost and highest variance version is the monadic typechecker. It strikes an unforuntate balance of being complicated code, with little guidance in the proof.
-  \item Direct is slightly cheaper, but still has enormous variance: we think the cost is lower because of all of the inlined definitions.
-  \item SoundBidir is better than either of the previous two. We think this is because the bidirectionality makes the proof less automatic, requiring calls to lemmas about subtyping.
-        This extra guidance helps in places, but the variance is still 
-  \item The two axiomatic ones are by far the best, in all categories. The fully axiomatized proof has a tiny variance and by far the smallest mean.
-  \item All of this benefit does come at the cost of automation. In taking possible work away from the solver to make the proof more stable, we are necessarily creating more work for ourselves!
-        Type soundness proofs done in this style are much more like proofs Coq, where we must spell out every step along the way.
-\end{itemize}
+\section{Discussion}
 
-\jwc{note that a lot of the cost of the first 3 comes from the disjunction in the safety property. if the langauge has no exceptions, the safety theorem just says that every well-typed term evaluates to a value of the right type, and
-all of the reasoning about the evaluator becomes much more straightforward, and the gap between the first three and the second two closes. Of course, for realistic languages, there can be very complex safety properties with more than two disjuncts, and so
-we believe that the benefit you get from the technique scales with the compexity of the language.}
+\subsubsection*{Scaling It Up}
+A version of this proof technique was developed for the purposes of mechanizing the proof of type soundness
+of the Cedar Policy Language \jwc{cite} \footnote{https://github.com/cedar-policy/cedar-spec/tree/main/cedar-dafny},
+and the technique described in this abstract is currently used in the type soundness proof of the language.
+Cedar's type system is a great deal more complex than that of our toy langauge, and includes a number of advanced type system features like ocurrence typing \jwc{cite: The Design and Implementation of Typed Scheme} and
+singleton types \cite{https://dl.acm.org/doi/10.5555/645867.670933}.
 
-\jwc{Talk about nonterminating languages -- you can gas-bound the evaluation and have the safety property be step-indexed.}
+Semantically, Cedar is not \emph{all} that much more complex to model than the
+toy language we evaluate for this extended abstract. Like our toy language,
+Cedar is terminating and first order.  Although we have not tested it, our
+technique should scale to languages with nontermination --- by step-indexing the
+evaluator and proving type-safety with failure to converge in $n$ steps being
+considered ``safe'' \jwc{cite step-indexing} --- and higher-order functions ---
+by applying standard tricks to handle variable binding. \jwc{cite}
 
-\jwc{In principle, this should scale to higher order langauges, but we haven't tried it out yet. For a CBV language, the substitution is likely to not be all that challenging.}
+
+
+\subsubsection*{Manual Effort \& Benefit}
+All of this benefit does come at the cost of some of the automation that Dafny
+users expect. In taking possible work away from the solver to make the proof
+more stable, we are necessarily creating more work for ourselves!  As we saw in
+the previous section, the type soundness proofs in the last two cases spell out
+many more steps along the way.
+
+For language simpler than the one we evaluate here, the benefit of using this technique decreases. In particular, in languages
+where the safety property does not include a disjunction --- safety means that every term evaluates to a value of the right type ---
+the benefit shrinks dramatically. The kind of straight-line reasoning required when every term can only evaluate in one way seems to be
+much easier for the verifier.
+
+\subsection*{Cost of Compatibility and Inverson Lemmas}
+\jwc{Decreases instability, but does require extra lemmas! Because the other proofs dont' have these lemmas broken out, we have no way to empircally measure how they compare to the proofs in the other techniques. That being said, we have anecdotatlly found the compatability and inversion lemmas to be very stable with minimal guidance, both in this development and in Cedar.}
 
 \jwc{The compataiblity and inversion lemmas are small and only require reasoning about either the evaluator or the checker.}
-
 
 
 \bibliographystyle{ACM-Reference-Format}
